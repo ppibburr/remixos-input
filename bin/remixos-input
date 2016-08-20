@@ -2,12 +2,12 @@
 
 require 'sinatra'
 require 'sinatra-websocket'
-require "./lib/ev"
+require "../lib/ev"
 require "open3"
 
 class UInput
   def initialize
-    @in, @out, @err = Open3.popen3("./uinput")
+    @in, @out, @err = Open3.popen3("python ./uinput")
   end
   
   def puts s
@@ -52,7 +52,7 @@ end
 def uinput ev, v, sync = 0
   @uinput ||= UInput.new
   
-  @uinput.puts "#{ev} #{v} #{sync ? 1 : (sync == 1 ? 1 : 0)}"
+  @uinput.puts "#{ev} #{v.to_i} #{sync ? 1 : (sync == 1 ? 1 : 0)}"
 end
 
 set :server, 'thin'
@@ -69,11 +69,17 @@ class Event
     case obj["type"]
     when "motion"
       MotionEvent.new obj
+    else
+      super
     end
   end
   
   def initialize json
     @json = json
+  end
+  
+  def type
+    @json["type"]
   end
 end
 
@@ -89,11 +95,11 @@ class MotionEvent < Event
   def distance
     d = @json["data"]["distance"]
     
-    d = 300 * (d / 50.0)
+    d = 400 * (d / 50.0)
   end
   
   def axis
-    @json[:axis]
+    @json["axis"]
   end
 end
 
@@ -116,17 +122,33 @@ get '/' do
         end
       
         evt = Event.new(json)
+        
+        if evt.type == 'end'
+          $t.kill
+          $t = nil
+        end
+        
         if evt.is_a?(MotionEvent)
-          speed = evt.distance / 30.0
+          speed = evt.distance / 10.0
           
-          next if evt.distance < 10
-          
-          [x=evt.distance * Math.cos(evt.angle * Math::PI / 180 ), y=evt.distance * Math.sin(evt.angle * Math::PI / 180 )];
-          podx, pody = [x / evt.distance.to_f,  y / evt.distance.to_f].map do |q| q.round(2) end
-          p [x,y, podx, pody]
-          dx, dy = [podx * speed, pody * speed].map do |q| q.abs < 1 ? 0 : q end
-          p [:move, dx, dy]
-          
+          case evt.axis
+            when 0  
+              next if evt.distance < 10
+              
+                [x=evt.distance * Math.cos(evt.angle * Math::PI / 180 ), y=evt.distance * Math.sin(evt.angle * Math::PI / 180 )];
+                podx, pody = [x / evt.distance.to_f,  y / evt.distance.to_f].map do |q| q.round(2) end
+                #p [x,y, podx, pody]
+                @dx, @dy = [podx * speed, pody * speed].map do |q| q.abs < 1 ? 0 : q end
+                #p [:move, dx, dy]
+              $t ||= Thread.new do
+                while true
+                  dx,dy = @dx, @dy
+                  uinput(REL_X, dx, (y.abs > 0 ? 0 : 1)) if dx.abs > 0
+                  uinput(REL_Y, dy * -1, 1) if dy.abs > 0
+                  sleep 0.0555
+                end
+              end
+          end
         end
         #EM.next_tick { settings.sockets.each{|s| s.send(msg) } }
       end
