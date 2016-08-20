@@ -1,0 +1,145 @@
+#!/usr/bin/ruby
+
+require 'sinatra'
+require 'sinatra-websocket'
+require "./lib/ev"
+require "open3"
+
+class UInput
+  def initialize
+    @in, @out, @err = Open3.popen3("./uinput")
+  end
+  
+  def puts s
+    @in.puts s 
+  end
+end
+
+class ADB
+  def initialize
+    @in, @out, @err = Open3.popen3("adb shell")
+  end
+  
+  def puts s
+    @in.puts s 
+  end
+  
+  def event dev, event, code, val
+    puts "sendevent #{dev} #{code} #{val}"
+  end
+  
+  def sync dev
+    input dev, 0, 0, 0
+  end
+  
+  def text str
+    puts "input text \"#{str.gsub(" ", "%s")}\""
+  end
+  
+  def launch pkg
+    puts "monkey -p #{pkg} 1"
+  end
+  
+  def keyevent code
+    puts "input keyevent #{code}"
+  end
+end
+
+def adb
+  @adb ||= ADB.new
+end
+
+def uinput ev, v, sync = 0
+  @uinput ||= UInput.new
+  
+  @uinput.puts "#{ev} #{v} #{sync ? 1 : (sync == 1 ? 1 : 0)}"
+end
+
+set :server, 'thin'
+set :sockets, []
+
+require 'json'
+
+class Event
+  def self.new obj
+    if self != Event
+      return super
+    end
+  
+    case obj["type"]
+    when "motion"
+      MotionEvent.new obj
+    end
+  end
+  
+  def initialize json
+    @json = json
+  end
+end
+
+class MotionEvent < Event
+  def angle
+    @json["data"]["degree"]
+  end
+  
+  def radian
+    @json["data"]["radian"] 
+  end
+  
+  def distance
+    d = @json["data"]["distance"]
+    
+    d = 300 * (d / 50.0)
+  end
+  
+  def axis
+    @json[:axis]
+  end
+end
+
+get '/' do
+  if !request.websocket?
+    open("../data/ui.html").read
+  else
+    request.websocket do |ws|
+      ws.onopen do
+        ws.send("Hello World!")
+        settings.sockets << ws
+      end
+      
+      ws.onmessage do |msg|
+        begin
+          json = JSON.parse(msg)
+        rescue => e
+          puts e
+          next
+        end
+      
+        evt = Event.new(json)
+        if evt.is_a?(MotionEvent)
+          speed = evt.distance / 30.0
+          
+          next if evt.distance < 10
+          
+          [x=evt.distance * Math.cos(evt.angle * Math::PI / 180 ), y=evt.distance * Math.sin(evt.angle * Math::PI / 180 )];
+          podx, pody = [x / evt.distance.to_f,  y / evt.distance.to_f].map do |q| q.round(2) end
+          p [x,y, podx, pody]
+          dx, dy = [podx * speed, pody * speed].map do |q| q.abs < 1 ? 0 : q end
+          p [:move, dx, dy]
+          
+        end
+        #EM.next_tick { settings.sockets.each{|s| s.send(msg) } }
+      end
+      
+      ws.onclose do
+        p("websocket closed")
+        settings.sockets.delete(ws)
+      end
+    end
+  end
+end
+
+get "/icons/:color/:file" do
+  open("../data/icons/#{params[:color]}/#{params[:file]}").read
+end
+

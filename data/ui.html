@@ -1,0 +1,244 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="mobile-web-app-capable" content="yes">
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="http://fiddle.jshell.net/css/result-light.css">
+  
+  <script type="text/javascript" src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  <script type="text/javascript" src="http://yoannmoinet.github.io/nipplejs/javascripts/nipplejs.js"></script>
+    
+  
+
+  <style type="text/css">
+    body {
+  margin: 0 0 0 0;
+  padding:0 0 0 0;
+  background-color:#000;
+  min-height:600px;
+}
+.flex-none {
+  flex-grow:0 !important;
+  width:1px;
+}
+.btn {
+  background-color:#6B3C3C;
+  height:1px;
+  width:1px;
+  min-width:50px !important;
+  min-height:50px !important;
+  align-self:center;
+  border-radius:0.5em;
+  border:solid blue 1px;
+}
+
+
+.btn img {
+   max-height:50px; 
+   position:relative;
+   left:27%;
+}
+
+.input {
+  background-color:#004488;
+  max-height:50px;
+  min-height:50px !important;
+  height:1px;
+  align-self:center;
+  border-radius:0.5em;
+}
+.cell {
+  flex-grow:1;
+  min-height:100px;
+  min-width:100px;
+  height:1px;
+  width:1px;
+}
+
+.space {
+  flex-grow:1;
+}
+
+.row {
+  display:flex; 
+  flex-grow:1;
+  padding-top:5px;
+  padding-bottom:5px;
+  min-width:100%;
+  align-items:center;
+}
+.joystick {
+  display: block;
+  position: relative;
+  left: 0px;
+  top: 0px;
+  display:flex;
+  align-items:center;
+}
+
+.joy-ph {
+  border-radius: 50%;
+  background-color:rgba(20,33,24,4);
+  width:100px;
+  height:100px;
+  flex-grow:0;
+}
+
+.flex-more {
+  flex-grow:2;
+}
+.column {
+  display:flex;
+  flex-direction:column;
+  min-height:600px;
+}
+  </style>
+
+  <title></title>
+
+  
+    
+
+
+
+
+<script type='text/javascript'>//<![CDATA[
+$(window).load(function(){
+var joysticks = [];
+ea = document.getElementsByClassName('joystick');
+for (i=0;i < ea.length;i++) {
+    e = ea.item(i);
+    var options = {
+        zone: e,
+        mode: 'dynamic',
+        position: {
+          left: '50%',
+          top: '50%'
+        },
+        color: "#adeade"
+    };
+    joysticks.push(mgr=nipplejs.create(options));
+    
+    mgr.on('start', function(evt, data) {
+      data.move = false;
+    });
+  
+    mgr.on('move', function(evt,data) {
+      navigator.vibrate(50,5,10*i);
+      
+      if (data.instance.move == false ) {
+        data.instance.move = 1;
+      } else {
+        data.instance.move = true;
+        
+        // send updates
+        console.log(data.angle.degree);
+        send({
+          type: "motion",
+          axis: i,
+          data: {
+            force: data.force,
+            x: data.position.x,
+            y: data.position.y,
+            distance: data.distance,
+            degree: data.angle.degree,
+            radian: data.angle.radian
+          }  
+        });
+      }
+    });
+    
+    mgr.on('end', function(evt, data) {
+      if (data.move === 1) {
+        // send tap
+        send({tap: i});
+        return;
+      }
+      
+      data.move = false;
+    });
+}
+});//]]> 
+
+// Let us open a web socket
+ var ws = new WebSocket("ws://192.168.1.12:4567");
+
+ ws.onopen = function()
+ {
+    // Web Socket is connected, send data using send()
+    ws.send("Message to send");
+ };
+
+ ws.onmessage = function (evt) 
+ { 
+    var received_msg = evt.data;
+
+ };
+
+ ws.onclose = function()
+ { 
+    // websocket ins closed.
+    alert("Connection is closed..."); 
+ };
+ 
+ function send(e) {
+   ws.send(JSON.stringify(e));
+ }
+</script>
+
+  
+</head>
+
+<body>
+  <div class=column>
+  <div class="row flex-none">
+    <div class="btn cell"><img src="icons/app/HBO.png" ></img></div>
+    <div class="btn cell"><img src="icons/app/amazon.png" ></img></div>
+    <div class="btn cell"><img src="icons/Black/YouTube.png" ></img></div>
+    <div class="btn cell"><img src="icons/Black/TV.png" ></img></div>
+    <div class="btn cell"><img src="icons/Black/Chrome.png" ></img></div>
+    <div class="btn cell"><img src="icons/Black/Music.png" ></img></div>    
+    <div class="btn cell"><img src="" ></img></div>   
+    <div class="btn cell"><img src="" ></img></div>       
+  </div>
+
+  <div class="row flex-more">
+    <div class="cell flex-more input"></div>
+    <div class="btn cell flex-none">go</div>
+    <div class="joystick cell">
+      <div class="space"></div>
+      <div class="joy-ph"></div>
+      <div class="space"></div>
+    </div>
+  </div>
+
+  <div class=row>
+    <div class="joystick cell">
+      <div class="space"></div>
+      <div class="joy-ph"></div>
+      <div class="space"></div>    
+    </div>
+    <div class="btn flex-none cell">go</div> 
+    <div class="joystick cell">
+      <div class="space"></div>
+      <div class="joy-ph"></div>
+      <div class="space"></div>    
+    </div>
+    <div class="btn flex-none cell">go</div> 
+    <div class="joystick cell">
+      <div class="space"></div>
+      <div class="joy-ph"></div>
+      <div class="space"></div>    
+    </div>
+  </div>
+</div>
+  
+</body>
+
+</html>

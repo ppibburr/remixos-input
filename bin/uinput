@@ -1,0 +1,66 @@
+#!/usr/bin/python
+
+import time
+import sys
+import uinput
+
+def main():
+    events = (
+        uinput.REL_X,
+        uinput.REL_Y,
+        uinput.BTN_LEFT,
+        uinput.BTN_RIGHT,
+        uinput.KEY_PLAYPAUSE,
+        uinput.KEY_MUTE,
+        uinput.KEY_VOLUMEUP,
+        uinput.KEY_VOLUMEDOWN,
+        uinput.KEY_BACK,
+        uinput.KEY_HOME,
+        uinput.KEY_MENU,
+        uinput.KEY_SEARCH,        
+        uinput.KEY_UP,
+        uinput.KEY_DOWN,
+        uinput.KEY_LEFT,
+        uinput.KEY_RIGHT,
+        uinput.KEY_ENTER,
+        uinput.KEY_TAB,
+        uinput.ABS_X,
+        uinput.ABS_Y,
+        uinput.BTN_TOUCH,
+        uinput.BTN_TL,
+        uinput.BTN_TR,
+        uinput.BTN_SELECT,
+        uinput.BTN_START,
+        uinput.BTN_A,
+        uinput.BTN_B,
+        uinput.BTN_C,
+        uinput.BTN_X,
+        uinput.BTN_Y,
+        uinput.BTN_Z,
+        uinput.KEY_SPACE,
+        uinput.BTN_2,
+        uinput.BTN_4,
+        uinput.BTN_5,
+        uinput.BTN_6,  
+        uinput.BTN_7, 
+        uinput.REL_HWHEEL,
+        uinput.REL_WHEEL,
+        uinput.KEY_VOICECOMMAND,
+        uinput.KEY_FASTFORWARD,
+        uinput.KEY_REWIND,
+        )
+
+    with uinput.Device(events) as device:
+        time.sleep(0.0666)
+            # syn=False to emit an "atomic" (5, 5) event.
+        line = sys.stdin.readline()
+        while line:
+          a = line.split(" ")
+          e = events[int(a[0])]
+          v = int(a[1])
+          s = int(a[2]) == 1
+          device.emit(e, v, s)
+          line = sys.stdin.readline()
+
+if __name__ == "__main__":
+    main()
