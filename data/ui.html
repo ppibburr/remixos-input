@@ -88,6 +88,7 @@
   width:100px;
   height:100px;
   flex-grow:0;
+  color:red;
 }
 
 .flex-more {
@@ -111,6 +112,9 @@
 <script type='text/javascript'>//<![CDATA[
 $(window).load(function(){
 var joysticks = [];
+$(".btn").on("touchstart", function(evt) {
+  $(evt.target).css("backgroundColor", "#adeade");	
+});
 ea = document.getElementsByClassName('joystick');
 for (var i=0;i < ea.length;i++) {
     e = ea.item(i);
@@ -156,24 +160,43 @@ for (var i=0;i < ea.length;i++) {
       }
     }.bind(mgr));
     
+    mgr.on("dir", function(evt, data) {
+		console.log(data);
+	  send({
+		type: "direction",
+		data: {
+		  axis:	joysticks.indexOf(this),
+		  direction: data.direction.angle,
+		  distance: data.distance
+		}  
+	  });
+	}.bind(mgr));
+    
     mgr.on('end', function(evt, data) {
       if (data.move === 1) {
         // send tap
-        send({tap: i});
+        send({
+		  type: "tap",
+		  data: {
+			axis: joysticks.indexOf(this)
+		  }
+		});
         return;
       }
       
       data.move = false;
       send({
         type: 'end', 
-        axis: joysticks.indexOf(this),
+        data: {
+		  axis: joysticks.indexOf(this)
+		}
       });
-    });
+    }.bind(mgr));
 }
 });//]]> 
 
 // Let us open a web socket
- var ws = new WebSocket("ws://192.168.1.13:4567");
+ var ws = new WebSocket("ws://10.235.147.154:4567");
 
  ws.onopen = function()
  {
@@ -183,7 +206,7 @@ for (var i=0;i < ea.length;i++) {
 
  ws.onmessage = function (evt) 
  { 
-    var received_msg = evt.data;
+    $("#coords").text(evt.data);
 
  };
 
@@ -227,7 +250,7 @@ for (var i=0;i < ea.length;i++) {
   <div class=row>
     <div class="joystick cell">
       <div class="space"></div>
-      <div class="joy-ph"></div>
+      <div class="joy-ph" id=coords></div>
       <div class="space"></div>    
     </div>
     <div class="btn flex-none cell">go</div> 

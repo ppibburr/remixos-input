@@ -4,7 +4,7 @@ require 'sinatra'
 require 'sinatra-websocket'
 require "../lib/ev"
 require "open3"
-
+Thread.abort_on_exception = true
 class UInput
   def initialize
     @in, @out, @err = Open3.popen3("python ./uinput")
@@ -81,6 +81,10 @@ class Event
   def type
     @json["type"]
   end
+  
+  def data
+    @json["data"]
+  end
 end
 
 class MotionEvent < Event
@@ -103,13 +107,27 @@ class MotionEvent < Event
   end
 end
 
+$axi = [
+  {dir:nil, plain:nil, direction:nil, speed:nil}, 
+  {dir:nil, plain:nil, direction:nil, speed:nil}, 
+  {dir:nil, plain:nil, direction:nil, speed:nil},
+  {dir:nil, plain:nil, direction:nil, speed:nil}
+]
+
+$x = 0
+$y = 0
+
+
+
 get '/' do
   if !request.websocket?
     open("../data/ui.html").read
   else
     request.websocket do |ws|
       ws.onopen do
-        ws.send("Hello World!")
+        uinput REL_X, -1920, 0
+        uinput REL_Y, -1080, 1
+        ws.send("0 0")
         settings.sockets << ws
       end
       
@@ -124,15 +142,75 @@ get '/' do
         evt = Event.new(json)
         
         if evt.type == 'end'
-          $t.kill
-          $t = nil
+          case evt.data["axis"]
+          when 1
+            $t.kill
+            $t = nil
+          when 3
+            $axi[3]["speed"] = nil
+            $axi[3]["direction"] = nil
+          when 0
+            od = $axi[0]["direction"] 
+            $axi[0]["direction"] = nil
+            $axi[0]["speed"] = nil
+            
+            case od
+            when "up"
+              uinput KEY_VUP, 0, 1
+            when "down"
+              uinput KEY_VDOWN, 0, 1
+            end
+          end
+        end
+        
+        if evt.type == "tap"
+          case evt.data["axis"]
+          when 3
+            uinput BTN_1, 1, 0
+            uinput BTN_1, 0, 1
+          
+          when 0
+            uinput KEY_PLAYPAUSE, 1, 0
+            uinput KEY_PLAYPAUSE, 0, 1
+            
+          when 2
+            uinput KEY_ENTER, 1, 0
+            uinput KEY_ENTER, 0, 1
+          
+          when 1
+            uinput BTN_3, 1, 0
+            uinput BTN_3, 0, 1    
+          end
+        end
+        
+        if evt.type == "direction"
+          axis=evt.data["axis"]
+          od = $axi[axis]["direction"] 
+          $axi[axis]["direction"] = dir = evt.data["direction"]
+          
+          case axis
+          when 0
+            case od
+            when 'up'
+              uinput KEY_VUP, 0, 1
+            when 'down'
+              uinput KEY_VDOWN, 0, 1
+            end
+            
+            case dir
+            when 'up'
+              uinput KEY_VUP, 1, 1
+            when 'down'
+              uinput KEY_VDOWN, 1, 1
+            end
+          end
         end
         
         if evt.is_a?(MotionEvent)
-          speed = evt.distance / 10.0
+          speed = $axi[evt.axis]["speed"] = evt.distance / 10.0
           
           case evt.axis
-            when 0  
+            when 1  
               next if evt.distance < 10
               
                 [x=evt.distance * Math.cos(evt.angle * Math::PI / 180 ), y=evt.distance * Math.sin(evt.angle * Math::PI / 180 )];
@@ -143,6 +221,12 @@ get '/' do
               $t ||= Thread.new do
                 while true
                   dx,dy = @dx, @dy
+                  
+                  if @dx != 0 or @dy != 0
+                    $x += @dx
+                    $y += @dy
+                  end
+                  
                   uinput(REL_X, dx, (y.abs > 0 ? 0 : 1)) if dx.abs > 0
                   uinput(REL_Y, dy * -1, 1) if dy.abs > 0
                   sleep 0.0555
@@ -159,6 +243,39 @@ get '/' do
       end
     end
   end
+end
+
+Thread.new do
+  loop do
+    settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
+    sleep 0.333
+  end
+end
+
+Thread.new do
+ loop do
+   if dir=$axi[3]["direction"]
+     speed=$axi[3]["speed"] ||= 1
+     case dir
+      when "left"
+        rel_q = REL_HWHEEL
+        polarity = 1
+      when "right"
+        rel_q = REL_HWHEEL
+        polarity = -1
+      when "up"
+        rel_q = REL_WHEEL
+        polarity = 1
+      when "DOWN"
+        rel_q = REL_WHEEL
+        polarity = -1              
+     else
+       next
+     end
+     
+     uinput rel_q, (speed * polarity).to_i, 1
+   end
+ end
 end
 
 get "/icons/:color/:file" do
