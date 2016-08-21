@@ -221,22 +221,21 @@ for (var i=0;i < ea.length;i++) {
   
     mgr.on('move', function(evt,data) {
       i = joysticks.indexOf(this);
-      if (data.distance >= 50) {
-        navigator.vibrate(22);
-        return;
-      } 
-      
-      
       
       if (data.instance.move == false ) {
         data.instance.move = 1;
       } else {
+        if (data.distance < 4) {
+          return;
+        } 
+        
         data.instance.move = true;
         
         // send updates
         if (data.distance < 2) {
           navigator.vibrate(55,2, 5);
         }
+        
         console.log(data.angle.degree);
         send({
           type: "motion",

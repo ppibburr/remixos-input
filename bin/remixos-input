@@ -8,7 +8,7 @@ require "open3"
 Thread.abort_on_exception = true
 class UInput
   def initialize
-    @in, @out, @err = Open3.popen3("python ./uinput")
+    @in, @out, @err = Open3.popen3("python ./uinput #{ARGV.index("touch") ? "" : "no-"}touch")
   end
   
   def puts s
@@ -147,9 +147,13 @@ $y = 0
 
 
 
+IP=`/sbin/ifconfig #{ARGV[0] ||= "eth0"} | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`.strip 
+set :bind, IP
+PORT = settings.port
+
 get '/' do
   if !request.websocket?
-    open("../data/ui.html").read
+    open("../data/ui.html").read.gsub("://192.168.1.12:4567", "://#{IP}:#{PORT}")
   else
     request.websocket do |ws|
       ws.onopen do
@@ -300,7 +304,7 @@ get '/' do
           case evt.axis
             when 2  
               next if evt.distance < 1
-                (((speed = speed * 5) / 400 )) * 0.1
+                speed = speed * 10
                 [x=evt.distance * Math.cos(evt.angle * Math::PI / 180 ), y=evt.distance * Math.sin(evt.angle * Math::PI / 180 )];
                 podx, pody = [x / evt.distance.to_f,  y / evt.distance.to_f].map do |q| q.round(2) end
                 #p [x,y, podx, pody]
@@ -320,7 +324,7 @@ get '/' do
                   
                   uinput(REL_X, dx, (y.abs > 0 ? 0 : 1)) if dx.abs > 0
                   uinput(REL_Y, dy * -1, 1) if dy.abs > 0
-                  sleep 0.003
+                  sleep 0.033
                   Thread.pass
                 end
               end

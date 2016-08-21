@@ -1,42 +1,46 @@
-REL_X      = 0
-REL_Y      = 1
-BTN_1      = 2
-BTN_3      = 3
-KEY_PLAYPAUSE   = 4
-KEY_MUTE   = 5
-KEY_VUP    = 6
-KEY_VDOWN  = 7
-KEY_BACK   = 8
-KEY_HOME   = 9
-KEY_MENU   = 10
-KEY_SEARCH = 11
-KEY_UP     = 12
-KEY_DOWN   = 13
-KEY_LEFT   = 14
-KEY_RIGHT  = 15
-KEY_ENTER  = 16
-KEY_TAB    = 17
-ABS_X      = 18
-ABS_Y      = 19
-BTN_TOUCH  = 20
-BTN_TL     = 21
-BTN_TR     = 22
-BTN_SELECT = 23
-BTN_START  = 24
-BTN_A      = 25
-BTN_B      = 26
-BTN_C      = 27
-BTN_X      = 28
-BTN_Y      = 29
-BTN_Z      = 30
-KEY_SPACE  = 31
-BTN_2      = 32
-BTN_4      = 33
-BTN_5      = 34
-BTN_6      = 35
-BTN_7      = 36
-REL_HWHEEL = 37
-REL_WHEEL  = 38
-KEY_VOICECOMMAND = 39
-KEY_REWIND       = 40
-KEY_FASTFORWARD  = 41
+i = -1
+REL_X     = i+=1
+REL_Y     = i+=1
+BTN_1     = i+=1
+BTN_3     = i+=1
+KEY_PLAYPAUSE  = i+=1
+KEY_MUTE  = i+=1
+KEY_VUP   = i+=1
+KEY_VDOWN = i+=1
+KEY_BACK  = i+=1
+KEY_HOME  = i+=1
+KEY_MENU  = i+=1
+KEY_SEARCH= i+=1
+KEY_UP    = i+=1
+KEY_DOWN  = i+=1
+KEY_LEFT  = i+=1
+KEY_RIGHT = i+=1
+KEY_ENTER = i+=1
+KEY_TAB   = i+=1
+BTN_TL    = i+=1
+BTN_TR    = i+=1
+BTN_SELECT= i+=1
+BTN_START = i+=1
+BTN_A     = i+=1
+BTN_B     = i+=1
+BTN_C     = i+=1
+BTN_X     = i+=1
+BTN_Y     = i+=1
+BTN_Z     = i+=1
+KEY_SPACE = i+=1
+BTN_2     = i+=1
+BTN_4     = i+=1
+BTN_5     = i+=1
+BTN_6     = i+=1
+BTN_7     = i+=1
+REL_HWHEEL= i+=1
+REL_WHEEL = i+=1
+KEY_VOICECOMMAND= i+=1
+KEY_REWIND      = i+=1
+KEY_FASTFORWARD = i+=1
+
+if ARGV.index('touch')
+  ABS_X     = i+=1
+  ABS_Y     = i+=1
+  BTN_TOUCH = i+=1
+end
