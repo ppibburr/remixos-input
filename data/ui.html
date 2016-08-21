@@ -17,11 +17,14 @@
   
 
   <style type="text/css">
+  html {
+    height:100%;
+  }
     body {
   margin: 0 0 0 0;
   padding:0 0 0 0;
   background-color:#000;
-  min-height:600px;
+  height:100%;
 }
 .flex-none {
   flex-grow:0 !important;
@@ -43,6 +46,10 @@
    max-height:50px; 
    position:relative;
    left:27%;
+}
+
+.btn-small img {
+  left: 0%;
 }
 
 .input {
@@ -80,7 +87,16 @@
   top: 0px;
   display:flex;
   align-items:center;
+  width:100px;
+  height:100px;
 }
+
+.joystick img {
+  height:50px;
+  position:relative;
+  left:27%;
+}
+  
 
 .joy-ph {
   border-radius: 50%;
@@ -97,7 +113,14 @@
 .column {
   display:flex;
   flex-direction:column;
-  min-height:600px;
+}
+
+.depressed {
+  background-color:#ade9cc
+}
+
+#outer {
+  height:100%;
 }
   </style>
 
@@ -112,9 +135,70 @@
 <script type='text/javascript'>//<![CDATA[
 $(window).load(function(){
 var joysticks = [];
-$(".btn").on("touchstart", function(evt) {
-  $(evt.target).css("backgroundColor", "#adeade");	
+
+$("#sync").on('click', function() {
+  window.location.href = "http://192.168.1.12:4567";
 });
+
+$("#home").on('click', function() {
+  send({
+    type: 'key',
+    data: {
+      key: 'KEY_HOME',
+      state: 1,
+      sync: 1
+    }
+  });
+  
+  send({
+    type: 'key',
+    data: {
+      key: 'KEY_HOME',
+      state: 0,
+      sync: 1
+    }
+  });  
+});
+
+$("#back").on('click', function() {
+  send({
+    type: 'key',
+    data: {
+      key: 'KEY_BACK',
+      state: 1,
+      sync: 1
+    }
+  });
+  
+  send({
+    type: 'key',
+    data: {
+      key: 'KEY_BACK',
+      state: 0,
+      sync: 1
+    }
+  });  
+});
+
+$(".btn").on("touchstart", function(evt) {
+  $(evt.target).addClass('depressed');
+  navigator.vibrate(50);
+});
+
+$(".app").on("click", function(evt) {
+  send({
+    type: 'app',
+    data: {
+      id: $(this).attr('id')
+    }
+  });
+  console.log(this);
+});
+
+$(".btn").on("touchend", function(evt) {
+  $(evt.target).removeClass('depressed');
+});
+
 ea = document.getElementsByClassName('joystick');
 for (var i=0;i < ea.length;i++) {
     e = ea.item(i);
@@ -150,6 +234,9 @@ for (var i=0;i < ea.length;i++) {
         data.instance.move = true;
         
         // send updates
+        if (data.distance < 2) {
+          navigator.vibrate(55,2, 5);
+        }
         console.log(data.angle.degree);
         send({
           type: "motion",
@@ -167,7 +254,8 @@ for (var i=0;i < ea.length;i++) {
     }.bind(mgr));
     
     mgr.on("dir", function(evt, data) {
-		console.log(data);
+		navigator.vibrate(55,2, 5);
+    console.log(data);
 	  send({
 		type: "direction",
 		data: {
@@ -182,20 +270,21 @@ for (var i=0;i < ea.length;i++) {
       if (data.move === 1) {
         // send tap
         send({
-		  type: "tap",
-		  data: {
-			axis: joysticks.indexOf(this)
-		  }
-		});
+		      type: "tap",
+		      data: {
+			      axis: joysticks.indexOf(this)
+		      }
+		    });
         return;
       }
       
       data.move = false;
+      
       send({
         type: 'end', 
         data: {
-		  axis: joysticks.indexOf(this)
-		}
+		      axis: joysticks.indexOf(this)
+		    }
       });
     }.bind(mgr));
 }
@@ -231,46 +320,58 @@ for (var i=0;i < ea.length;i++) {
 </head>
 
 <body>
-  <div class=column>
+  <div class=column id=outer>
   <div class="row flex-none">
-    <div class="btn cell"><img src="icons/app/HBO.png" ></img></div>
-    <div class="btn cell"><img src="icons/app/amazon.png" ></img></div>
-    <div class="btn cell"><img src="icons/Black/YouTube.png" ></img></div>
-    <div class="btn cell"><img src="icons/Black/TV.png" ></img></div>
-    <div class="btn cell"><img src="icons/Black/Chrome.png" ></img></div>
-    <div class="btn cell"><img src="icons/Black/Music.png" ></img></div>    
-    <div class="btn cell"><img src="" ></img></div>   
-    <div class="btn cell"><img src="" ></img></div>       
+    <div class="btn cell app" id=hbo><img src="icons/app/HBO.png" ></img></div>
+    <div class="btn cell app" id=amazon><img src="icons/app/amazon.png" ></img></div>
+    <div class="btn cell app" id=youtube><img src="icons/Black/YouTube.png" ></img></div>
+    <div class="btn cell app" id=tv><img src="icons/Black/TV.png" ></img></div>
+    <div class="btn cell app" id=chrome><img src="icons/Black/Chrome.png" ></img></div>
+    <div class="btn cell app" id=music><img src="icons/Black/Music.png" ></img></div>    
+    <div class="btn cell app"><img src="" ></img></div>   
+    <div class="btn cell app"><img src="" ></img></div>       
   </div>
 
-  <div class="row flex-more">
+  <div class='row flex-more' id=coords></div>
+
+  <div class="row flex-none">
+    <div class="space"></div>
+    <div class="joy-ph cell">
+      <div class="space"></div>
+      <div class="joystick"><img src="icons/White/Add.png" ></img></div>
+      <div class="space"></div>
+    </div>
+    <div class="space flex-more"></div>
+    <div class="btn cell flex-none btn-small" id=sync><img src="icons/White/Sync.png" ></img></div>
     <div class="cell flex-more input"></div>
-    <div class="btn cell flex-none">go</div>
-    <div class="joystick cell">
+    <div class="btn cell flex-none btn-small"><img src="icons/White/Search.png" ></img></div>
+    <div class='space flex-more'></div>
+    <div class="joy-ph cell">
       <div class="space"></div>
-      <div class="joy-ph"></div>
+      <div class="joystick"><img src="icons/White/Play.png" ></img></div>
       <div class="space"></div>
     </div>
+    <div class=space></div>
   </div>
 
-  <div class=row>
-    <div class="joystick cell">
+  <div class='row flex-more'>
+    <div class='space flex-more'></div>
+    <div class="joy-ph cell">
       <div class="space"></div>
-      <div class="joy-ph" id=coords></div>
+      <div class="joystick" id><img src="icons/White/Mouse.png" ></img></div>
       <div class="space"></div>    
     </div>
-    <div class="btn flex-none cell">go</div> 
-    <div class="joystick cell">
+    <div class='space'></div>
+    <div class="btn flex-none cell btn-small" id=back><img src="icons/White/Arrow Left.png" ></img></div> 
+    <div class='space flex-more'></div>
+    <div class="btn flex-none cell btn-small" id=home><img src="icons/White/Home.png" ></img></div> 
+    <div class='space'></div>
+    <div class="joy-ph cell">
       <div class="space"></div>
-      <div class="joy-ph"></div>
+      <div class="joystick"><img src="icons/White/BootCamp.png" ></img></div>
       <div class="space"></div>    
     </div>
-    <div class="btn flex-none cell">go</div> 
-    <div class="joystick cell">
-      <div class="space"></div>
-      <div class="joy-ph"></div>
-      <div class="space"></div>    
-    </div>
+    <div class='space flex-more'></div>
   </div>
 </div>
   

@@ -16,6 +16,17 @@ class UInput
   end
 end
 
+APPS = {
+  tv: 'com.sling',
+  youtube: 'com.google.android.youtube',
+  hbo: 'com.HBO',
+  chrome: 'com.android.chrome',
+  music: 'com.spotify.music',
+  amazon: 'com.amazon.avod.thirdpartyclient'
+}
+
+p APPS
+
 class ADB
   def initialize
     @in, @out, @err = Open3.popen3("adb shell")
@@ -70,6 +81,8 @@ class Event
     case obj["type"]
     when "motion"
       MotionEvent.new obj
+    when 'key'
+      KeyEvent.new obj
     else
       super
     end
@@ -85,6 +98,20 @@ class Event
   
   def data
     @json["data"]
+  end
+end
+
+class KeyEvent < Event
+  def key
+    data["key"]
+  end
+  
+  def state
+    data["state"]
+  end
+  
+  def sync
+    data["sync"] ||= true
   end
 end
 
@@ -142,6 +169,24 @@ get '/' do
       
         evt = Event.new(json)
         
+        if evt.is_a?(KeyEvent)
+          if evt.key == "KEY_HOME"
+            if evt.state == 1
+              adb.keyevent 3
+            end
+            
+            next
+          end
+          uinput Object.const_get(evt.key), evt.state, evt.sync
+        end
+        
+        if evt.type == "app"
+        p :app
+        p APPS[evt.data["id"]]
+        p evt.data["id"]
+          adb.launch APPS[evt.data["id"].to_sym]
+        end
+        
         if evt.type == 'end'
           axis = evt.data["axis"]
           od = $axi[axis]["direction"] 
@@ -149,13 +194,13 @@ get '/' do
           $axi[axis]["speed"] = nil
             
           case axis
-          when 1
-            $t.kill
+          when 2
+            $t.kill if $t
             $t = nil
           when 3
             $axi[3]["speed"] = nil
             $axi[3]["direction"] = nil
-          when 0
+          when 1
             case od
             when "up"
               uinput KEY_VUP, 0, 1
@@ -163,7 +208,7 @@ get '/' do
               uinput KEY_VDOWN, 0, 1
             end
           
-          when 2
+          when 0
             case od
             when 'up'
               uinput KEY_UP, 0, 1
@@ -180,19 +225,21 @@ get '/' do
         if evt.type == "tap"
           case evt.data["axis"]
           when 3
-            uinput BTN_1, 1, 0
+            p :left
+            uinput BTN_1, 1, 1
             uinput BTN_1, 0, 1
+            
           
-          when 0
-            uinput KEY_PLAYPAUSE, 1, 0
+          when 1
+            uinput KEY_PLAYPAUSE, 1, 1
             uinput KEY_PLAYPAUSE, 0, 1
             
-          when 2
+          when 0
             uinput KEY_ENTER, 1, 0
             uinput KEY_ENTER, 0, 1
           
-          when 1
-            uinput BTN_3, 1, 0
+          when 2
+            uinput BTN_3, 1, 1
             uinput BTN_3, 0, 1    
           end
         end
@@ -203,7 +250,7 @@ get '/' do
           $axi[axis]["direction"] = dir = evt.data["direction"]
           
           case axis
-          when 0
+          when 1
             case od
             when 'up'
               uinput KEY_VUP, 0, 1
@@ -218,7 +265,7 @@ get '/' do
               uinput KEY_VDOWN, 1, 1
             end
             
-          when 2
+          when 0
             case od
             when 'up'
               uinput KEY_UP, 0, 1
@@ -233,12 +280,16 @@ get '/' do
             case dir
             when 'up'
               uinput KEY_UP, 1, 1
+              uinput REL_Y, 1, 1
             when 'down'
               uinput KEY_DOWN, 1, 1
+              uinput REL_Y, -1, 1
             when 'right'
               uinput KEY_RIGHT, 1, 1
+              uinput REL_X, 1, 1
             when 'left'
-              uinput KEY_LEFT, 1, 1  
+              uinput KEY_LEFT, 1, 1
+              uinput REL_X, -1, 1  
             end            
           end
         end
@@ -247,14 +298,14 @@ get '/' do
           speed = $axi[evt.axis]["speed"] = evt.distance / 5.0
           
           case evt.axis
-            when 1  
-              next if evt.distance < 10
-              
+            when 2  
+              next if evt.distance < 1
+                (((speed = speed * 5) / 400 )) * 0.1
                 [x=evt.distance * Math.cos(evt.angle * Math::PI / 180 ), y=evt.distance * Math.sin(evt.angle * Math::PI / 180 )];
                 podx, pody = [x / evt.distance.to_f,  y / evt.distance.to_f].map do |q| q.round(2) end
                 #p [x,y, podx, pody]
-                @dx, @dy = [podx * speed, pody * speed].map do |q| q.abs < 1 ? 0 : q end
-                #p [:move, dx, dy]
+                @dx, @dy = [podx * speed / 100, pody * speed / 100].map do |q| q.abs < 1 ? 0 : q end
+
               $t ||= Thread.new do
                 while true
                   dx,dy = @dx, @dy
@@ -263,13 +314,14 @@ get '/' do
                     $x += @dx
                     $y += @dy
                 
-                    settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
+                    #settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
 
                   end
                   
                   uinput(REL_X, dx, (y.abs > 0 ? 0 : 1)) if dx.abs > 0
                   uinput(REL_Y, dy * -1, 1) if dy.abs > 0
-                  sleep 0.0255
+                  sleep 0.003
+                  Thread.pass
                 end
               end
           end
@@ -290,7 +342,8 @@ Thread.new do
  loop do
    if dir=$axi[3]["direction"]
      speed=$axi[3]["speed"] ||= 1
-     next unless $axi[3]["speed"] >= 19
+     next unless speed  >= 19
+     speed = ((speed * 5) / 400) * 6
      case dir
       when "left"
         rel_q = REL_HWHEEL

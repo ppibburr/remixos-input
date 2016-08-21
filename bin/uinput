@@ -13,7 +13,7 @@ def main():
 		uinput.KEY_VOLUMEUP    , #  6
 		uinput.KEY_VOLUMEDOWN  , #  7
 		uinput.KEY_BACK   , #  8
-		uinput.KEY_HOME   , #  9
+		uinput.KEY_HOMEPAGE   , #  9
 		uinput.KEY_MENU   , #  10
 		uinput.KEY_SEARCH , #  11
 		uinput.KEY_UP     , #  12
