@@ -6,7 +6,7 @@ def main():
     events = (
 		uinput.REL_X      , #  0
 		uinput.REL_Y      , #  1
-        uinput.BTN_LEFT   , #  2
+    uinput.BTN_LEFT   , #  2
 		uinput.BTN_RIGHT  , #  3
 		uinput.KEY_PLAYPAUSE   , #  4
 		uinput.KEY_MUTE   , #  5
@@ -22,9 +22,9 @@ def main():
 		uinput.KEY_RIGHT  , #  15
 		uinput.KEY_ENTER  , #  16
 		uinput.KEY_TAB    , #  17
-		#uinput.ABS_X      , #  18
-		#uinput.ABS_Y      , #  19
-		#uinput.BTN_TOUCH  , #  20
+		uinput.ABS_X      , #  18
+		uinput.ABS_Y      , #  19
+		uinput.BTN_TOUCH  , #  20
 		uinput.BTN_TL     , #  21
 		uinput.BTN_TR     , #  22
 		uinput.BTN_SELECT , #  23

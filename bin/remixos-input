@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 
+
 require 'sinatra'
 require 'sinatra-websocket'
 require "../lib/ev"
@@ -111,7 +112,7 @@ $axi = [
   {dir:nil, plain:nil, direction:nil, speed:nil}, 
   {dir:nil, plain:nil, direction:nil, speed:nil}, 
   {dir:nil, plain:nil, direction:nil, speed:nil},
-  {dir:nil, plain:nil, direction:nil, speed:nil}
+  {dir:nil, plain:nil, direction:nil, speed:0}
 ]
 
 $x = 0
@@ -142,7 +143,12 @@ get '/' do
         evt = Event.new(json)
         
         if evt.type == 'end'
-          case evt.data["axis"]
+          axis = evt.data["axis"]
+          od = $axi[axis]["direction"] 
+          $axi[axis]["direction"] = nil
+          $axi[axis]["speed"] = nil
+            
+          case axis
           when 1
             $t.kill
             $t = nil
@@ -150,15 +156,23 @@ get '/' do
             $axi[3]["speed"] = nil
             $axi[3]["direction"] = nil
           when 0
-            od = $axi[0]["direction"] 
-            $axi[0]["direction"] = nil
-            $axi[0]["speed"] = nil
-            
             case od
             when "up"
               uinput KEY_VUP, 0, 1
             when "down"
               uinput KEY_VDOWN, 0, 1
+            end
+          
+          when 2
+            case od
+            when 'up'
+              uinput KEY_UP, 0, 1
+            when 'down'
+              uinput KEY_DOWN, 0, 1
+            when 'right'
+              uinput KEY_RIGHT, 0, 1
+            when 'left'
+              uinput KEY_LEFT, 0, 1              
             end
           end
         end
@@ -203,11 +217,34 @@ get '/' do
             when 'down'
               uinput KEY_VDOWN, 1, 1
             end
+            
+          when 2
+            case od
+            when 'up'
+              uinput KEY_UP, 0, 1
+            when 'down'
+              uinput KEY_DOWN, 0, 1
+            when 'right'
+              uinput KEY_RIGHT, 0, 1
+            when 'left'
+              uinput KEY_LEFT, 0, 1              
+            end
+            
+            case dir
+            when 'up'
+              uinput KEY_UP, 1, 1
+            when 'down'
+              uinput KEY_DOWN, 1, 1
+            when 'right'
+              uinput KEY_RIGHT, 1, 1
+            when 'left'
+              uinput KEY_LEFT, 1, 1  
+            end            
           end
         end
         
         if evt.is_a?(MotionEvent)
-          speed = $axi[evt.axis]["speed"] = evt.distance / 10.0
+          speed = $axi[evt.axis]["speed"] = evt.distance / 5.0
           
           case evt.axis
             when 1  
@@ -225,11 +262,14 @@ get '/' do
                   if @dx != 0 or @dy != 0
                     $x += @dx
                     $y += @dy
+                
+                    settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
+
                   end
                   
                   uinput(REL_X, dx, (y.abs > 0 ? 0 : 1)) if dx.abs > 0
                   uinput(REL_Y, dy * -1, 1) if dy.abs > 0
-                  sleep 0.0555
+                  sleep 0.0255
                 end
               end
           end
@@ -245,17 +285,12 @@ get '/' do
   end
 end
 
-Thread.new do
-  loop do
-    settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
-    sleep 0.333
-  end
-end
 
 Thread.new do
  loop do
    if dir=$axi[3]["direction"]
      speed=$axi[3]["speed"] ||= 1
+     next unless $axi[3]["speed"] >= 19
      case dir
       when "left"
         rel_q = REL_HWHEEL
@@ -266,15 +301,17 @@ Thread.new do
       when "up"
         rel_q = REL_WHEEL
         polarity = 1
-      when "DOWN"
+      when "down"
         rel_q = REL_WHEEL
         polarity = -1              
      else
+       Thread.pass
        next
      end
      
      uinput rel_q, (speed * polarity).to_i, 1
    end
+   sleep 0.12
  end
 end
 

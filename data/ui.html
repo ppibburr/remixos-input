@@ -132,11 +132,17 @@ for (var i=0;i < ea.length;i++) {
     
     mgr.on('start', function(evt, data) {
       data.move = false;
+      navigator.vibrate(22);
     });
   
     mgr.on('move', function(evt,data) {
       i = joysticks.indexOf(this);
-      navigator.vibrate(50,5,10*i);
+      if (data.distance >= 50) {
+        navigator.vibrate(22);
+        return;
+      } 
+      
+      
       
       if (data.instance.move == false ) {
         data.instance.move = 1;
@@ -196,7 +202,7 @@ for (var i=0;i < ea.length;i++) {
 });//]]> 
 
 // Let us open a web socket
- var ws = new WebSocket("ws://10.235.147.154:4567");
+ var ws = new WebSocket("ws://192.168.1.12:4567");
 
  ws.onopen = function()
  {
