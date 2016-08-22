@@ -122,6 +122,35 @@
 #outer {
   height:100%;
 }
+
+#ll {
+  position:relative;
+  top:-12px;
+}
+
+#lr {
+  position:relative;
+  top:-40px;
+  left: 60px;
+}
+
+#ll {
+  position:relative;
+  top:-40px;
+  left:-12px;
+}
+
+#tl {
+  position:relative;
+  left:10px;
+}
+
+#tr {
+  position:relative;
+  left:20px;
+}
+
+
   </style>
 
   <title></title>
@@ -223,6 +252,7 @@ for (var i=0;i < ea.length;i++) {
       i = joysticks.indexOf(this);
       
       if (data.instance.move == false ) {
+        navigator.vibrate(55,5,55);
         data.instance.move = 1;
       } else {
         if (data.distance < 4) {
@@ -331,21 +361,22 @@ for (var i=0;i < ea.length;i++) {
     <div class="btn cell app"><img src="" ></img></div>       
   </div>
 
-  <div class='row flex-more' id=coords></div>
+  <div class='row' id=coords></div>
 
   <div class="row flex-none">
     <div class="space"></div>
-    <div class="joy-ph cell">
+    <div class="joy-ph cell" id=tl>
       <div class="space"></div>
       <div class="joystick"><img src="icons/White/Add.png" ></img></div>
       <div class="space"></div>
     </div>
     <div class="space flex-more"></div>
+    <div class='space'></div>
     <div class="btn cell flex-none btn-small" id=sync><img src="icons/White/Sync.png" ></img></div>
     <div class="cell flex-more input"></div>
     <div class="btn cell flex-none btn-small"><img src="icons/White/Search.png" ></img></div>
     <div class='space flex-more'></div>
-    <div class="joy-ph cell">
+    <div class="joy-ph cell" id=tr>
       <div class="space"></div>
       <div class="joystick"><img src="icons/White/Play.png" ></img></div>
       <div class="space"></div>
@@ -354,23 +385,31 @@ for (var i=0;i < ea.length;i++) {
   </div>
 
   <div class='row flex-more'>
-    <div class='space flex-more'></div>
-    <div class="joy-ph cell">
-      <div class="space"></div>
-      <div class="joystick" id><img src="icons/White/Mouse.png" ></img></div>
-      <div class="space"></div>    
-    </div>
-    <div class='space'></div>
-    <div class="btn flex-none cell btn-small" id=back><img src="icons/White/Arrow Left.png" ></img></div> 
-    <div class='space flex-more'></div>
-    <div class="btn flex-none cell btn-small" id=home><img src="icons/White/Home.png" ></img></div> 
-    <div class='space'></div>
-    <div class="joy-ph cell">
+    <div class='space flex'></div>
+    <div class="joy-ph cell" id=ll>
       <div class="space"></div>
       <div class="joystick"><img src="icons/White/BootCamp.png" ></img></div>
       <div class="space"></div>    
     </div>
+    
+    <div class=flex-more></div>
+    
+    <div class="joy-ph cell" id=lr>
+      <div class="space"></div>
+      <div class="joystick"><img src="icons/White/Mouse.png" ></img></div>
+      <div class="space"></div>    
+    </div>
+    <div class='space flex'></div>
+  </div>
+  
+  <div class='row flex-none'>
+    <div class='space'></div>
+    <div class="btn cell btn-small" id=back><img src="icons/White/Arrow Left.png" ></img></div> 
     <div class='space flex-more'></div>
+    <div class='space flex-more'></div>
+    <div class='space flex-more'></div>
+    <div class="btn cell btn-small" id=home><img src="icons/White/Home.png" ></img></div> 
+    <div class='space'></div>  
   </div>
 </div>
   

@@ -198,12 +198,12 @@ get '/' do
           $axi[axis]["speed"] = nil
             
           case axis
-          when 2
+          when 3
             $t.kill if $t
             $t = nil
-          when 3
-            $axi[3]["speed"] = nil
-            $axi[3]["direction"] = nil
+          when 2
+            $axi[2]["speed"] = nil
+            $axi[2]["direction"] = nil
           when 1
             case od
             when "up"
@@ -228,8 +228,7 @@ get '/' do
         
         if evt.type == "tap"
           case evt.data["axis"]
-          when 3
-            p :left
+          when 2
             uinput BTN_1, 1, 1
             uinput BTN_1, 0, 1
             
@@ -242,7 +241,7 @@ get '/' do
             uinput KEY_ENTER, 1, 0
             uinput KEY_ENTER, 0, 1
           
-          when 2
+          when 3
             uinput BTN_3, 1, 1
             uinput BTN_3, 0, 1    
           end
@@ -302,7 +301,7 @@ get '/' do
           speed = $axi[evt.axis]["speed"] = evt.distance / 5.0
           
           case evt.axis
-            when 2  
+            when 3  
               next if evt.distance < 1
                 speed = speed * 10
                 [x=evt.distance * Math.cos(evt.angle * Math::PI / 180 ), y=evt.distance * Math.sin(evt.angle * Math::PI / 180 )];
@@ -324,7 +323,7 @@ get '/' do
                   
                   uinput(REL_X, dx, (y.abs > 0 ? 0 : 1)) if dx.abs > 0
                   uinput(REL_Y, dy * -1, 1) if dy.abs > 0
-                  sleep 0.033
+                  sleep 0.013
                   Thread.pass
                 end
               end
@@ -344,8 +343,8 @@ end
 
 Thread.new do
  loop do
-   if dir=$axi[3]["direction"]
-     speed=$axi[3]["speed"] ||= 1
+   if dir=$axi[2]["direction"]
+     speed=$axi[2]["speed"] ||= 1
      next unless speed  >= 19
      speed = ((speed * 5) / 400) * 6
      case dir
