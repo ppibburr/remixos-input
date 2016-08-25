@@ -28,6 +28,51 @@ APPS = {
 p APPS
 
 class ADB
+  CHARMAP = {
+    '0':i=7,
+    '2':i+=1,
+    '3':i+=1,
+    '4':i+=1,
+    '5':i+=1,
+    '6':i+=1,
+    '7':i+=1,
+    '8':i+=1,
+    '9':i+=1,
+    'a':i=29,                            
+    'b':i+1,
+    'c':i+1,
+    'd':i+1,
+    'e':i+1, 
+    'f':i+1,
+    'g':i+1,
+    'h':i+1,
+    'i':i+1,
+    'j':i+1,
+    'k':i+1,
+    'l':i+1,
+    'm':i+1,
+    'n':i+1,
+    'o':i+1,
+    'p':i+1,
+    'q':i+1,
+    'r':i+1,
+    's':i+1,
+    't':i+1,
+    'u':i+1,     
+    'v':i+1,
+    'w':i+1,
+    'x':i+1,
+    'y':i+1,    
+    'z':i+1,
+    ',':i+1,
+    '.':i+1,            
+    'Shift':59,
+    'Tab':61,
+    'Enter':66,
+    'Space':62,
+    'BkSp':67        
+  }
+
   def initialize
     @in, @out, @err = Open3.popen3("adb shell")
   end
@@ -83,6 +128,8 @@ class Event
       MotionEvent.new obj
     when 'key'
       KeyEvent.new obj
+    when 'keyboard'
+      KeyboardEvent.new obj      
     else
       super
     end
@@ -112,6 +159,21 @@ class KeyEvent < Event
   
   def sync
     data["sync"] ||= true
+  end
+end
+
+class KeyboardEvent < Event
+  def name
+    data["key"].to_sym
+  end
+  
+  def action
+    data['action']
+  end
+  
+  def perform
+    code = ADB::CHARMAP[name]
+    adb.keyevent code
   end
 end
 
@@ -205,6 +267,11 @@ get '/' do
         end
       
         evt = Event.new(json)
+        
+        if evt.is_a?(KeyboardEvent)
+          evt.perform
+          next
+        end
         
         if evt.is_a?(KeyEvent)
           if evt.key == "KEY_HOME"
