@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
-
+require 'open3'
 i,o,e = Open3.popen3("python uinput touch")
 
 loop do; 
-  i.puts "39 #{rand(1000)} 0";
-  i.puts "40 #{rand(1000)} 1";  
+  i.puts "0 #{rand(1000)} 0";
+  i.puts "1 #{rand(1000)} 1";  
   sleep(15*60);
 end

@@ -30,6 +30,12 @@
   flex-grow:0 !important;
   width:1px;
 }
+
+.flex3 {
+  width:1px;
+  flex-grow:3 !important;  
+}
+
 .btn {
   background-color:#FF0000;
   height:1px;
@@ -116,7 +122,7 @@
 }
 
 .depressed {
-  background-color:#ade9cc
+  background-color:#ade9cc !important;
 }
 
 #outer {
@@ -162,6 +168,65 @@
 }
 */
 
+#kbm {
+  position: relative;
+  width:100px;
+  height:100px;
+  top:200px;
+  left:-100px;
+}
+
+#kbm .joystick {
+  width:90px;
+  height:90px;
+}
+
+#kbw {
+  position: relative;
+  width:100px;
+  height:100px;
+  top:-10px;
+  left:-10px;
+}
+
+#kbw .joystick {
+  width:90px;
+  height:90px;
+}
+
+#keyboard {
+  z-Index:999;
+  position:absolute;
+  top: 60px;
+  left:0px;
+  background-color:#7A6C6C;
+  width:100%;
+  height:calc(100% - 50px);
+}
+
+.hide {
+  display:none;
+}
+
+.key {
+  background-color: #695959;
+  color:white;
+
+  font-size:larger;
+
+  height:1px;
+  width:1px;
+  min-width:67px !important;
+  min-height:67px !important;
+  align-self:center;
+  border-radius:0.5em;
+  border:solid #cecece 1px;  
+  text-align:center;
+}
+
+.flex-end .key {
+  align-self: flex-end;
+}
   </style>
 
   <title></title>
@@ -175,6 +240,16 @@
 <script type='text/javascript'>//<![CDATA[
 $(window).load(function(){
 var joysticks = [];
+
+$('#keyboard').addClass('hide');
+$('.input').on('click', function() {
+  $('#keyboard').removeClass('hide');
+});
+
+$('#kbr').on('click', function() {
+  $('#keyboard').addClass('hide');
+});
+
 
 $("#sync").on('click', function() {
   window.location.href = window.location.href;
@@ -225,6 +300,16 @@ $(".btn").on("touchstart", function(evt) {
   navigator.vibrate(50);
 });
 
+$(".key").on("touchstart", function(evt) {
+  $(evt.target).addClass('depressed');
+  navigator.vibrate(50);
+  
+});
+
+
+document.getElementsByTagName('DIV')[0].webkitRequestFullscreen();
+
+
 $(".app").on("click", function(evt) {
   send({
     type: 'app',
@@ -237,6 +322,17 @@ $(".app").on("click", function(evt) {
 
 $(".btn").on("touchend", function(evt) {
   $(evt.target).removeClass('depressed');
+});
+
+$(".key").on("touchend", function(evt) {
+  $(evt.target).removeClass('depressed');
+});
+
+$(".key:not('.btn')").on('click', function(evt) {
+  val=evt.target.innerText;
+  if (val != '') {
+    console.log(val);
+  }
 });
 
 ea = document.getElementsByClassName('joystick');
@@ -354,6 +450,7 @@ for (var i=0;i < ea.length;i++) {
  function send(e) {
    ws.send(JSON.stringify(e));
  }
+ 
 </script>
 
   
@@ -378,9 +475,9 @@ for (var i=0;i < ea.length;i++) {
     <div class="space"></div>
     <div class="joy-ph cell" id=tl>
       <div class="space"></div>
-      <div class="joystick"><img src="icons/White/Add.png" ></img></div>
+      <div class="joystick"><img src="icons/White/Play.png" ></img></div>
       <div class="space"></div>
-    </div>
+    </div>    
     <div class="space flex-more"></div>
     <div class='space'></div>
     <div class="btn cell flex-none btn-small" id=sync><img src="icons/White/Sync.png" ></img></div>
@@ -389,18 +486,19 @@ for (var i=0;i < ea.length;i++) {
     <div class='space flex-more'></div>
     <div class="joy-ph cell" id=tr>
       <div class="space"></div>
-      <div class="joystick"><img src="icons/White/Play.png" ></img></div>
-      <div class="space"></div>
-    </div>
+      <div class="joystick"><img src="icons/White/BootCamp.png" ></img></div>
+      <div class="space"></div>    
+    </div>    
     <div class=space></div>
   </div>
 
   <div class='row flex-more'>
     <div class="btn cell btn-small" id=back><img src="icons/White/Arrow Left.png" ></img></div> 
+    
     <div class="joy-ph cell" id=ll>
       <div class="space"></div>
-      <div class="joystick"><img src="icons/White/BootCamp.png" ></img></div>
-      <div class="space"></div>    
+      <div class="joystick"><img src="icons/White/Add.png" ></img></div>
+      <div class="space"></div>
     </div>
     
     <div class=flex-more></div>
@@ -410,7 +508,103 @@ for (var i=0;i < ea.length;i++) {
       <div class="joystick"><img src="icons/White/Mouse.png" ></img></div>
       <div class="space"></div>    
     </div>
+    
     <div class="btn cell btn-small" id=home><img src="icons/White/Home.png" ></img></div>
+  </div>
+  
+  <div class=column id=keyboard>
+    <div class='row flex-end'>
+      <div class=key>`</div>
+      <div class=key>1</div>
+      <div class=key>2</div>
+      <div class=key>3</div>
+      <div class=key>4</div>
+      <div class=key>5</div>
+      <div class=key>6</div>
+      <div class=key>7</div>
+      <div class=key>8</div>
+      <div class=key>9</div>
+      <div class=key>0</div>
+      <div class=key>-</div>
+      <div class=key>=</div>
+      <div class='key flex-more'>BkSp</div>
+      <div class='space'></div>
+      <div class="joy-ph cell" id=kbm>
+        <div class="space"></div>
+        <div class="joystick"><img src="icons/White/Mouse.png" ></img></div>
+        <div class="space"></div>    
+      </div>
+    </div>
+    
+    <div class='row flex-end'>
+      <div class=key>q</div>
+      <div class=key>w</div>
+      <div class=key>e</div>
+      <div class=key>r</div>
+      <div class=key>t</div>
+      <div class=key>y</div>
+      <div class=key>u</div>
+      <div class=key>i</div>
+      <div class=key>o</div>
+      <div class=key>p</div>
+      <div class=key>[</div>
+      <div class=key>]</div>
+      <div class=key>\</div>
+      <div class="btn key cell btn-small" id=kbr><img src="icons/White/Sync.png" ></img></div>
+      <div class='space'></div>
+    </div>
+    
+    <div class=row>
+      <div class=key>a</div>
+      <div class=key>s</div>
+      <div class=key>d</div>
+      <div class=key>e</div>
+      <div class=key>f</div>
+      <div class=key>g</div>
+      <div class=key>h</div>
+      <div class=key>j</div>
+      <div class=key>k</div>
+      <div class=key>l</div>
+      <div class=key>;</div>
+      <div class=key>'</div>
+    </div>        
+    
+    <div class=row>
+      <div class=key>z</div>
+      <div class=key>x</div>
+      <div class=key>c</div>
+      <div class=key>v</div>
+      <div class=key>b</div>
+      <div class=key>n</div>
+      <div class=key>m</div>
+      <div class=key>,</div>
+      <div class=key>.</div>
+      <div class=key>/</div>
+      <div class=key><div class="btn key cell btn-small" id=kbu><img src="icons/White/Arrow Up.png" ></img></div></div>
+      <div class=key>Enter</div>
+    </div>    
+    
+    <div class=row>
+      <div class='key '>Shift</div>
+      <div class='key '>Tab</div>
+      <div class="btn key cell btn-small" id=kbb><img src="icons/White/Arrow Circle Left.png" ></img></div>
+      <div class='key flex3'>Space</div>
+      <div class="btn key cell btn-small" id=kbh><img src="icons/White/Home.png" ></img></div>
+      <div class="btn key cell btn-small" id=kbs><img src="icons/White/Search.png" ></img></div>
+      <div class="btn key cell btn-small" id=kbp><img src="icons/White/Play.png" ></img></div>
+      <div class='key '>Ctrl</div>
+
+      <div class=key><div class="btn key cell btn-small" id=kbl><img src="icons/White/Arrow Left.png" ></img></div></div>
+      <div class=key><div class="btn key cell btn-small" id=kbd><img src="icons/White/Arrow Down.png" ></img></div></div>
+      <div class=key><div class="btn key cell btn-small" id=kbr><img src="icons/White/Arrow Right.png" ></img></div></div>
+      
+           <div class='space'></div>
+      <div class="joy-ph cell" id=kbw>
+        <div class="space"></div>
+        <div class="joystick"><img src="icons/White/BootCamp.png" ></img></div>
+        <div class="space"></div>    
+      </div>
+    </div>    
   </div>
 </div>
   

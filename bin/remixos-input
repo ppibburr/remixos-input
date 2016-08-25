@@ -139,6 +139,8 @@ $axi = [
   {dir:nil, plain:nil, direction:nil, speed:nil}, 
   {dir:nil, plain:nil, direction:nil, speed:nil}, 
   {dir:nil, plain:nil, direction:nil, speed:nil},
+  {dir:nil, plain:nil, direction:nil, speed:0},
+  {dir:nil, plain:nil, direction:nil, speed:0},  
   {dir:nil, plain:nil, direction:nil, speed:0}
 ]
 
@@ -147,22 +149,20 @@ $y = 0
 
 
 
-IP=`/sbin/ifconfig #{ARGV[0] ||= "eth0"} | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`.strip 
+p IP=`/sbin/ifconfig #{ARGV[0] ||= "eth0"} | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`.strip 
+
 set :bind, '0.0.0.0'
+
 PORT = settings.port
 
 RUN_NGROK = "../../ngrok http #{PORT} -log ./log.txt"
 
 File.open("log.txt", "w") do |f| f.puts "" end
 
+Open3.popen3 RUN_NGROK
 
-Thread.new do
-  Open3.popen3 RUN_NGROK
-  while true
-    sleep 1
-  end
-end  
 sleep 2
+
 ngrok = `cat log.txt | grep \"starting web\"`.scan(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\:[0-9]+/)[0]
 p ngrok
 
@@ -175,6 +175,14 @@ end
 p THE_URI = uri
 
 `curl http://textbelt.com/text -d number=8146032589 -d "message=#{THE_URI}"`
+
+
+AXIS_DPAD  = 2
+AXIS_WHEEL = 1
+AXIS_MOUSE = 3
+AXIS_MEDIA = 0
+AXIS_KBM   = 4
+AXIS_KBW   = 5
 
 get '/' do
   if !request.websocket?
@@ -206,13 +214,11 @@ get '/' do
             
             next
           end
+          
           uinput Object.const_get(evt.key), evt.state, evt.sync
         end
         
         if evt.type == "app"
-        p :app
-        p APPS[evt.data["id"]]
-        p evt.data["id"]
           adb.launch APPS[evt.data["id"].to_sym]
         end
         
@@ -222,14 +228,20 @@ get '/' do
           $axi[axis]["direction"] = nil
           $axi[axis]["speed"] = nil
             
-          case axis
-          when 3
+          if (AXIS_MOUSE == axis or AXIS_KBM == axis)
             $t.kill if $t
             $t = nil
-          when 2
-            $axi[2]["speed"] = nil
-            $axi[2]["direction"] = nil
-          when 1
+            next
+          end
+          
+          if axis == AXIS_WHEEL or axis == AXIS_KBW
+            $axi[axis]["speed"] = nil
+            $axi[axis]["direction"] = nil
+            next
+          end
+          
+          case axis
+          when AXIS_MEDIA
             case od
             when "up"
               uinput KEY_VUP, 0, 1
@@ -237,7 +249,7 @@ get '/' do
               uinput KEY_VDOWN, 0, 1
             end
           
-          when 0
+          when AXIS_DPAD
             case od
             when 'up'
               uinput KEY_UP, 0, 1
@@ -252,23 +264,31 @@ get '/' do
         end
         
         if evt.type == "tap"
-          case evt.data["axis"]
-          when 2
+          axis=evt.data["axis"]
+          
+          if axis == AXIS_WHEEL or axis == AXIS_KBW
             uinput BTN_1, 1, 1
             uinput BTN_1, 0, 1
             
+            next
+          end
           
-          when 1
+          case axis
+          
+          when AXIS_MEDIA
             uinput KEY_PLAYPAUSE, 1, 1
             uinput KEY_PLAYPAUSE, 0, 1
             
-          when 0
+          when AXIS_DPAD
             uinput KEY_ENTER, 1, 0
             uinput KEY_ENTER, 0, 1
           
-          when 3
+          when AXIS_MOUSE
             uinput BTN_3, 1, 1
-            uinput BTN_3, 0, 1    
+            uinput BTN_3, 0, 1 
+          when AXIS_KBM
+            uinput BTN_3, 1, 1
+            uinput BTN_3, 0, 1     
           end
         end
         
@@ -278,7 +298,7 @@ get '/' do
           $axi[axis]["direction"] = dir = evt.data["direction"]
           
           case axis
-          when 1
+          when AXIS_MEDIA
             case od
             when 'up'
               uinput KEY_VUP, 0, 1
@@ -293,7 +313,7 @@ get '/' do
               uinput KEY_VDOWN, 1, 1
             end
             
-          when 0
+          when AXIS_DPAD
             case od
             when 'up'
               uinput KEY_UP, 0, 1
@@ -325,8 +345,8 @@ get '/' do
         if evt.is_a?(MotionEvent)
           speed = $axi[evt.axis]["speed"] = evt.distance / 5.0
           
-          case evt.axis
-            when 3  
+          case
+            when (AXIS_MOUSE == evt.axis or evt.axis == AXIS_KBM)
               next if evt.distance < 1
                 speed = speed * 10
                 [x=evt.distance * Math.cos(evt.angle * Math::PI / 180 ), y=evt.distance * Math.sin(evt.angle * Math::PI / 180 )];
@@ -368,8 +388,8 @@ end
 
 Thread.new do
  loop do
-   if dir=$axi[2]["direction"]
-     speed=$axi[2]["speed"] ||= 1
+   if dir=$axi[axis=AXIS_WHEEL]["direction"] or dir=$axi[axis=AXIS_KBW]["direction"]
+     speed=$axi[axis]["speed"] ||= 1
      next unless speed  >= 19
      speed = ((speed * 5) / 400) * 6
      case dir
