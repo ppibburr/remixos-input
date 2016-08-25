@@ -148,7 +148,7 @@ $y = 0
 
 
 IP=`/sbin/ifconfig #{ARGV[0] ||= "eth0"} | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`.strip 
-set :bind, IP
+set :bind, '0.0.0.0'
 PORT = settings.port
 
 RUN_NGROK = "../../ngrok http #{PORT} -log ./log.txt"
