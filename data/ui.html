@@ -31,7 +31,7 @@
   width:1px;
 }
 .btn {
-  background-color:#6B3C3C;
+  background-color:#FF0000;
   height:1px;
   width:1px;
   min-width:50px !important;
@@ -87,8 +87,8 @@
   top: 0px;
   display:flex;
   align-items:center;
-  width:100px;
-  height:100px;
+  width:180px;
+  height:180px;
 }
 
 .joystick img {
@@ -100,9 +100,9 @@
 
 .joy-ph {
   border-radius: 50%;
-  background-color:rgba(20,33,24,4);
-  width:100px;
-  height:100px;
+  background-color:rgba(0,255,78,0.78);
+  width:200px;
+  height:200px;
   flex-grow:0;
   color:red;
 }
@@ -123,6 +123,17 @@
   height:100%;
 }
 
+#home {
+	position:relative;
+	top:80px;
+}
+
+#back {
+	position:relative;
+	top:80px;
+}
+
+/*
 #ll {
   position:relative;
   top:-12px;
@@ -149,7 +160,7 @@
   position:relative;
   left:20px;
 }
-
+*/
 
   </style>
 
@@ -166,7 +177,7 @@ $(window).load(function(){
 var joysticks = [];
 
 $("#sync").on('click', function() {
-  window.location.href = "http://192.168.1.12:4567";
+  window.location.href = window.location.href;
 });
 
 $("#home").on('click', function() {
@@ -255,7 +266,7 @@ for (var i=0;i < ea.length;i++) {
         navigator.vibrate(55,5,55);
         data.instance.move = 1;
       } else {
-        if (data.distance < 4) {
+        if (data.distance < 6) {
           return;
         } 
         
@@ -385,7 +396,7 @@ for (var i=0;i < ea.length;i++) {
   </div>
 
   <div class='row flex-more'>
-    <div class='space flex'></div>
+    <div class="btn cell btn-small" id=back><img src="icons/White/Arrow Left.png" ></img></div> 
     <div class="joy-ph cell" id=ll>
       <div class="space"></div>
       <div class="joystick"><img src="icons/White/BootCamp.png" ></img></div>
@@ -399,17 +410,7 @@ for (var i=0;i < ea.length;i++) {
       <div class="joystick"><img src="icons/White/Mouse.png" ></img></div>
       <div class="space"></div>    
     </div>
-    <div class='space flex'></div>
-  </div>
-  
-  <div class='row flex-none'>
-    <div class='space'></div>
-    <div class="btn cell btn-small" id=back><img src="icons/White/Arrow Left.png" ></img></div> 
-    <div class='space flex-more'></div>
-    <div class='space flex-more'></div>
-    <div class='space flex-more'></div>
-    <div class="btn cell btn-small" id=home><img src="icons/White/Home.png" ></img></div> 
-    <div class='space'></div>  
+    <div class="btn cell btn-small" id=home><img src="icons/White/Home.png" ></img></div>
   </div>
 </div>
   

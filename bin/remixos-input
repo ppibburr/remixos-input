@@ -151,9 +151,34 @@ IP=`/sbin/ifconfig #{ARGV[0] ||= "eth0"} | grep "inet addr" | awk -F: '{print $2
 set :bind, IP
 PORT = settings.port
 
+RUN_NGROK = "../../ngrok http #{PORT} -log ./log.txt"
+
+File.open("log.txt", "w") do |f| f.puts "" end
+
+
+Thread.new do
+  Open3.popen3 RUN_NGROK
+  while true
+    sleep 1
+  end
+end  
+sleep 2
+ngrok = `cat log.txt | grep \"starting web\"`.scan(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\:[0-9]+/)[0]
+p ngrok
+
+if ngrok
+  uri = `wget http://#{ngrok}/inspect/http -O - | grep ngrok.io`.scan(/http\:\/\/.*?io/)[0] || "http://#{IP}:#{PORT}"
+else
+  uri =  "http://#{IP}:#{PORT}"
+end
+
+p THE_URI = uri
+
+`curl http://textbelt.com/text -d number=8146032589 -d "message=#{THE_URI}"`
+
 get '/' do
   if !request.websocket?
-    open("../data/ui.html").read.gsub("://192.168.1.12:4567", "://#{IP}:#{PORT}")
+    open("../data/ui.html").read.gsub("://192.168.1.12:4567", uri.gsub(/^http/,''))
   else
     request.websocket do |ws|
       ws.onopen do
