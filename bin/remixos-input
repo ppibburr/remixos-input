@@ -12,6 +12,8 @@ class UInput
   end
   
   def puts s
+    return unless s.split(" ").length == 3
+
     @in.puts s 
   end
 end
@@ -29,48 +31,49 @@ p APPS
 
 class ADB
   CHARMAP = {
-    '0':i=7,
-    '2':i+=1,
-    '3':i+=1,
-    '4':i+=1,
-    '5':i+=1,
-    '6':i+=1,
-    '7':i+=1,
-    '8':i+=1,
-    '9':i+=1,
-    'a':i=29,                            
-    'b':i+1,
-    'c':i+1,
-    'd':i+1,
-    'e':i+1, 
-    'f':i+1,
-    'g':i+1,
-    'h':i+1,
-    'i':i+1,
-    'j':i+1,
-    'k':i+1,
-    'l':i+1,
-    'm':i+1,
-    'n':i+1,
-    'o':i+1,
-    'p':i+1,
-    'q':i+1,
-    'r':i+1,
-    's':i+1,
-    't':i+1,
-    'u':i+1,     
-    'v':i+1,
-    'w':i+1,
-    'x':i+1,
-    'y':i+1,    
-    'z':i+1,
-    ',':i+1,
-    '.':i+1,            
-    'Shift':59,
-    'Tab':61,
-    'Enter':66,
-    'Space':62,
-    'BkSp':67        
+    '0'.to_sym => i=7,
+    '1'.to_sym => i+=1,    
+    '2'.to_sym => i+=1,
+    '3'.to_sym => i+=1,
+    '4'.to_sym => i+=1,
+    '5'.to_sym => i+=1,
+    '6'.to_sym => i+=1,
+    '7'.to_sym => i+=1,
+    '8'.to_sym => i+=1,
+    '9'.to_sym => i+=1,
+    'a'.to_sym => i=29,                            
+    'b'.to_sym => i+=1,
+    'c'.to_sym => i+=1,
+    'd'.to_sym => i+=1,
+    'e'.to_sym => i+=1, 
+    'f'.to_sym => i+=1,
+    'g'.to_sym => i+=1,
+    'h'.to_sym => i+=1,
+    'i'.to_sym => i+=1,
+    'j'.to_sym => i+=1,
+    'k'.to_sym => i+=1,
+    'l'.to_sym => i+=1,
+    'm'.to_sym => i+=1,
+    'n'.to_sym => i+=1,
+    'o'.to_sym => i+=1,
+    'p'.to_sym => i+=1,
+    'q'.to_sym => i+=1,
+    'r'.to_sym => i+=1,
+    's'.to_sym => i+=1,
+    't'.to_sym => i+=1,
+    'u'.to_sym => i+=1,     
+    'v'.to_sym => i+=1,
+    'w'.to_sym => i+=1,
+    'x'.to_sym => i+=1,
+    'y'.to_sym => i+=1,    
+    'z'.to_sym => i+=1,
+    ','.to_sym => i+=1,
+    '.'.to_sym => i+=1,            
+    'Shift'.to_sym => 59,
+    'Tab'.to_sym => 61,
+    'Enter'.to_sym => 66,
+    'Space'.to_sym => 62,
+    'BkSp'.to_sym => 67        
   }
 
   def initialize
@@ -97,19 +100,20 @@ class ADB
     puts "monkey -p #{pkg} 1"
   end
   
-  def keyevent code
+  def keyevent code 
     puts "input keyevent #{code}"
   end
 end
 
 def adb
   @adb ||= ADB.new
+rescue
+  @adb = nil
 end
 
-def uinput ev, v, sync = 0
+def uinput ev, v, sync = 1
   @uinput ||= UInput.new
-  
-  @uinput.puts "#{ev} #{v.to_i} #{sync ? 1 : (sync == 1 ? 1 : 0)}"
+  @uinput.puts "#{ev} #{v.to_i} #{sync}"
 end
 
 set :server, 'thin'
@@ -163,6 +167,12 @@ class KeyEvent < Event
 end
 
 class KeyboardEvent < Event
+  EVTS = {}
+  CHARMAP.each_pair do |k,v|
+    EVTS[k] = true
+  end
+  
+  
   def name
     data["key"].to_sym
   end
@@ -171,9 +181,38 @@ class KeyboardEvent < Event
     data['action']
   end
   
+  def uinput1 *o
+    $ev ||= []
+    
+    $ev << o
+    
+    $ft ||= Thread.new do
+      loop do
+        until ev=$ev.shift
+          Thread.pass
+        end
+        
+        if ev[1] == 1
+          play_click
+        end
+        uinput *ev
+      end
+    end
+  end
+  
   def perform
-    code = ADB::CHARMAP[name]
-    adb.keyevent code
+  
+    # code = ADB::CHARMAP[name]
+    # adb.keyevent code
+    case action
+    when 'click'
+      uinput CHARMAP[name], 1, 1
+      uinput CHARMAP[name], 0, 1
+    when 'down'
+      uinput1 CHARMAP[name], 1, 1
+    when 'up'
+      uinput1 CHARMAP[name], 0, 1
+    end
   end
 end
 
@@ -286,7 +325,7 @@ get '/' do
         end
         
         if evt.type == "app"
-          adb.launch APPS[evt.data["id"].to_sym]
+          adb.launch APPS[evt.data["id"].to_sym] if evt.data["id"]
         end
         
         if evt.type == 'end'
@@ -453,6 +492,12 @@ get '/' do
 end
 
 
+def play_click
+  Thread.new do
+    system "aplay ../data/click.wav &"
+  end
+end
+
 Thread.new do
  loop do
    if dir=$axi[axis=AXIS_WHEEL]["direction"] or dir=$axi[axis=AXIS_KBW]["direction"]
@@ -476,6 +521,8 @@ Thread.new do
        Thread.pass
        next
      end
+     
+     play_click
      
      uinput rel_q, (speed * polarity).to_i, 1
    end

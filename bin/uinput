@@ -43,13 +43,56 @@ def main():
         uinput.KEY_VOICECOMMAND , #  39
         uinput.KEY_REWIND       , #  40
         uinput.KEY_FASTFORWARD  , #  41
+        uinput.KEY_0,
+        uinput.KEY_1,
+        uinput.KEY_2,
+        uinput.KEY_3,
+        uinput.KEY_4,
+        uinput.KEY_5,
+        uinput.KEY_6,
+        uinput.KEY_7,
+        uinput.KEY_8,
+        uinput.KEY_9,
+        uinput.KEY_A,
+        uinput.KEY_B,
+        uinput.KEY_C,
+        uinput.KEY_D,
+        uinput.KEY_E,
+        uinput.KEY_F,
+        uinput.KEY_G,
+        uinput.KEY_H,
+        uinput.KEY_I,
+        uinput.KEY_J,
+        uinput.KEY_K,
+        uinput.KEY_L,
+        uinput.KEY_M,
+        uinput.KEY_N,
+        uinput.KEY_O,
+        uinput.KEY_P,
+        uinput.KEY_Q,
+        uinput.KEY_R,
+        uinput.KEY_S,
+        uinput.KEY_T,
+        uinput.KEY_U,
+        uinput.KEY_V,
+        uinput.KEY_W,
+        uinput.KEY_X,
+        uinput.KEY_Y,
+        uinput.KEY_Z,
+        uinput.KEY_SPACE,
+        uinput.KEY_BACKSPACE,
+        uinput.KEY_LEFTSHIFT,
+        uinput.KEY_LEFTCTRL,
+        uinput.KEY_COMMA,
+        uinput.KEY_DOT,
+        uinput.KEY_SLASH,
     )
     
     if (sys.argv[1] == 'touch'):
         events = events + (uinput.ABS_X, uinput.ABS_Y, uinput.BTN_TOUCH)
 
     with uinput.Device(events) as device:
-        time.sleep(0.0666)
+        time.sleep(0.06)
             # syn=False to emit an "atomic" (5, 5) event.
         line = sys.stdin.readline()
         while line:

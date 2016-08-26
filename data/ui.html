@@ -3,6 +3,7 @@
 <html>
 <head>
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=0.65, user-scalable=no" />
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="robots" content="noindex, nofollow">
   <meta name="googlebot" content="noindex, nofollow">
@@ -239,9 +240,15 @@
 
 <script type='text/javascript'>//<![CDATA[
 $(window).load(function(){
+
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+}, false); 
+  
 var joysticks = [];
 
 $('#keyboard').addClass('hide');
+
 $('.input').on('click', function() {
   $('#keyboard').removeClass('hide');
 });
@@ -328,12 +335,37 @@ $(".key").on("touchend", function(evt) {
   $(evt.target).removeClass('depressed');
 });
 
-$(".key:not('.btn')").on('click', function(evt) {
+$(".key:not('.btn')").on('touchstart', function(evt) {
   val=evt.target.innerText;
   if (val != '') {
     console.log(val);
+    
+    send({
+      type: 'keyboard',
+      data: {
+        key: val,
+        action: 'down' 
+      }
+    });
   }
 });
+
+$(".key:not('.btn')").on('touchend', function(evt) {
+  val=evt.target.innerText;
+  if (val != '') {
+    console.log(val);
+    
+    send({
+      type: 'keyboard',
+      data: {
+        key: val,
+        action: 'up' 
+      }
+    });
+  }
+});
+
+
 
 ea = document.getElementsByClassName('joystick');
 for (var i=0;i < ea.length;i++) {

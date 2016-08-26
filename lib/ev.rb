@@ -38,9 +38,101 @@ REL_WHEEL = i+=1
 KEY_VOICECOMMAND= i+=1
 KEY_REWIND      = i+=1
 KEY_FASTFORWARD = i+=1
+KEY_0 = i+=1
+KEY_1 = i+=1
+KEY_2 = i+=1
+KEY_3 = i+=1
+KEY_4 = i+=1
+KEY_5 = i+=1
+KEY_6 = i+=1
+KEY_7 = i+=1
+KEY_8 = i+=1
+KEY_9 = i+=1
+KEY_A = i+=1
+KEY_B = i+=1
+KEY_C = i+=1
+KEY_D = i+=1
+KEY_E = i+=1
+KEY_F = i+=1
+KEY_G = i+=1
+KEY_H = i+=1
+KEY_I = i+=1
+KEY_J = i+=1
+KEY_K = i+=1
+KEY_L = i+=1
+KEY_M = i+=1
+KEY_N = i+=1
+KEY_O = i+=1
+KEY_P = i+=1
+KEY_Q = i+=1
+KEY_R = i+=1
+KEY_S = i+=1
+KEY_T = i+=1
+KEY_U = i+=1
+KEY_V = i+=1
+KEY_W = i+=1
+KEY_X = i+=1
+KEY_Y = i+=1
+KEY_Z = i+=1
+
+KEY_SPACE     = i+=1
+KEY_BACKSPACE = i+=1
+KEY_LEFTSHIFT = i+=1
+KEY_LEFTCTRL  = i+=1
+KEY_COMMA     = i+=1
+KEY_DOT       = i+=1
+KEY_SLASH     = i+=1
 
 if ARGV.index('touch')
   ABS_X     = i+=1
   ABS_Y     = i+=1
   BTN_TOUCH = i+=1
 end
+
+
+CHARMAP = {
+  '0'.to_sym => i=KEY_0,
+  '1'.to_sym => i+=1,    
+  '2'.to_sym => i+=1,
+  '3'.to_sym => i+=1,
+  '4'.to_sym => i+=1,
+  '5'.to_sym => i+=1,
+  '6'.to_sym => i+=1,
+  '7'.to_sym => i+=1,
+  '8'.to_sym => i+=1,
+  '9'.to_sym => i+=1,
+  'a'.to_sym => i+=1,                            
+  'b'.to_sym => i+=1,
+  'c'.to_sym => i+=1,
+  'd'.to_sym => i+=1,
+  'e'.to_sym => i+=1, 
+  'f'.to_sym => i+=1,
+  'g'.to_sym => i+=1,
+  'h'.to_sym => i+=1,
+  'i'.to_sym => i+=1,
+  'j'.to_sym => i+=1,
+  'k'.to_sym => i+=1,
+  'l'.to_sym => i+=1,
+  'm'.to_sym => i+=1,
+  'n'.to_sym => i+=1,
+  'o'.to_sym => i+=1,
+  'p'.to_sym => i+=1,
+  'q'.to_sym => i+=1,
+  'r'.to_sym => i+=1,
+  's'.to_sym => i+=1,
+  't'.to_sym => i+=1,
+  'u'.to_sym => i+=1,     
+  'v'.to_sym => i+=1,
+  'w'.to_sym => i+=1,
+  'x'.to_sym => i+=1,
+  'y'.to_sym => i+=1,    
+  'z'.to_sym => i+=1,
+  ','.to_sym => KEY_COMMA,
+  '.'.to_sym => KEY_DOT,            
+  'Shift'.to_sym => KEY_LEFTSHIFT,
+  'Tab'.to_sym => KEY_TAB,
+  'Enter'.to_sym => KEY_ENTER,
+  'Space'.to_sym => KEY_SPACE,
+  'BkSp'.to_sym => KEY_BACKSPACE,
+  '/'.to_sym    => KEY_SLASH        
+}
