@@ -3,9 +3,13 @@
 
 require 'sinatra'
 require 'sinatra-websocket'
+
 require "../lib/ev"
+
 require "open3"
+
 Thread.abort_on_exception = true
+
 class UInput
   def initialize
     @in, @out, @err = Open3.popen3("python ./uinput #{ARGV.index("touch") ? "" : "no-"}touch")
@@ -26,8 +30,6 @@ APPS = {
   music: 'com.spotify.music',
   amazon: 'com.amazon.avod.thirdpartyclient'
 }
-
-p APPS
 
 class ADB
   CHARMAP = {
@@ -73,7 +75,12 @@ class ADB
     'Tab'.to_sym => 61,
     'Enter'.to_sym => 66,
     'Space'.to_sym => 62,
-    'BkSp'.to_sym => 67        
+    'BkSp'.to_sym => 67,
+    :media_toggle  => 85,
+    :home          => 3,
+    :back          => 4,
+    :menu          => 82,
+    :search        => 84
   }
 
   def initialize
@@ -97,11 +104,43 @@ class ADB
   end
   
   def launch pkg
+    play_click
     puts "monkey -p #{pkg} 1"
   end
   
   def keyevent code 
+    play_click
     puts "input keyevent #{code}"
+  end
+  
+  def tap x,y
+    play_click
+    puts "input tap #{x.to_i} #{y.to_i}"
+  end
+  
+  def active
+    `adb shell dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp'`.scan(/\b[a-z]+\..*?\//)[0].gsub("/",'')
+  end
+  
+  def search
+    case active
+    when "com.HBO"
+      play_click
+      tap 1620, 20
+    when "com.amazon.avod.thirdpartyclient"
+      tap 1822, 142
+    else
+      keyevent 84
+      return
+    end
+    
+    uinput 0, -1920, 1
+    uinput 1, -1080, 1
+    
+    sleep 0.1
+    
+    uinput 0, (1920/2.0).to_i, 0
+    uinput 1, (1080/2.0).to_i, 1 
   end
 end
 
@@ -201,9 +240,19 @@ class KeyboardEvent < Event
   end
   
   def perform
-  
-    # code = ADB::CHARMAP[name]
-    # adb.keyevent code
+    if action == 'adb'
+      code = ADB::CHARMAP[name]
+
+      if name == :search
+        adb.search
+        return
+      end
+
+      adb.keyevent code
+      
+      return
+    end
+    
     case action
     when 'click'
       uinput CHARMAP[name], 1, 1
@@ -250,7 +299,7 @@ $y = 0
 
 
 
-p IP=`/sbin/ifconfig #{ARGV[0] ||= "eth0"} | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`.strip 
+IP=`/sbin/ifconfig #{ARGV[0] ||= "eth0"} | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`.strip 
 
 set :bind, '0.0.0.0'
 
@@ -265,17 +314,22 @@ Open3.popen3 RUN_NGROK
 sleep 2
 
 ngrok = `cat log.txt | grep \"starting web\"`.scan(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\:[0-9]+/)[0]
-p ngrok
 
 if ngrok
-  uri = `wget http://#{ngrok}/inspect/http -O - | grep ngrok.io`.scan(/http\:\/\/.*?io/)[0] || "http://#{IP}:#{PORT}"
+  uri = `wget http://#{ngrok}/inspect/http -O - &2>/dev/null | grep ngrok.io`.scan(/http\:\/\/.*?io/)[0] || "http://#{IP}:#{PORT}"
 else
   uri =  "http://#{IP}:#{PORT}"
 end
 
-p THE_URI = uri
+puts "\n\n\n"*5
 
-`curl http://textbelt.com/text -d number=8146032589 -d "message=#{THE_URI}"`
+puts "Using IP: #{ IP}"
+puts "Using IP: #{ PORT}"
+puts "ngrok data @ #{ngrok}"
+puts "RUN!!\nConnect to: #{THE_URI = uri}"
+
+
+IO.popen("curl http://textbelt.com/text -d number=8146032589 -d \"message=#{THE_URI}\"")
 
 
 AXIS_DPAD  = 2
@@ -373,6 +427,7 @@ get '/' do
           axis=evt.data["axis"]
           
           if axis == AXIS_WHEEL or axis == AXIS_KBW
+            play_click
             uinput BTN_1, 1, 1
             uinput BTN_1, 0, 1
             
@@ -382,17 +437,21 @@ get '/' do
           case axis
           
           when AXIS_MEDIA
+            play_click
             uinput KEY_PLAYPAUSE, 1, 1
             uinput KEY_PLAYPAUSE, 0, 1
             
           when AXIS_DPAD
+            play_click
             uinput KEY_ENTER, 1, 0
             uinput KEY_ENTER, 0, 1
           
           when AXIS_MOUSE
+            play_click
             uinput BTN_3, 1, 1
             uinput BTN_3, 0, 1 
           when AXIS_KBM
+            play_click
             uinput BTN_3, 1, 1
             uinput BTN_3, 0, 1     
           end
@@ -414,8 +473,10 @@ get '/' do
             
             case dir
             when 'up'
+              play_click
               uinput KEY_VUP, 1, 1
             when 'down'
+              play_click
               uinput KEY_VDOWN, 1, 1
             end
             
@@ -433,15 +494,19 @@ get '/' do
             
             case dir
             when 'up'
+              play_click
               uinput KEY_UP, 1, 1
               uinput REL_Y, 1, 1
             when 'down'
+              play_click
               uinput KEY_DOWN, 1, 1
               uinput REL_Y, -1, 1
             when 'right'
+              play_click
               uinput KEY_RIGHT, 1, 1
               uinput REL_X, 1, 1
             when 'left'
+              play_click
               uinput KEY_LEFT, 1, 1
               uinput REL_X, -1, 1  
             end            
@@ -467,12 +532,19 @@ get '/' do
                   if @dx != 0 or @dy != 0
                     $x += @dx
                     $y += @dy
-                
-                    #settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
+                    
+                    $x = 1920 if $x > 1920
+                    $y = 1080 if $y > 1080
+                    
+                    $x = 0 if $x < 0
+                    $y = 0 if $y < 0
+                    
+                   
+                    settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
 
                   end
                   
-                  uinput(REL_X, dx, (y.abs > 0 ? 0 : 1)) if dx.abs > 0
+                  uinput(REL_X, dx, ( 1)) if dx.abs > 0
                   uinput(REL_Y, dy * -1, 1) if dy.abs > 0
                   sleep 0.013
                   Thread.pass
@@ -494,7 +566,7 @@ end
 
 def play_click
   Thread.new do
-    system "aplay ../data/click.wav &"
+    system("aplay ../data/click.wav") || system("aplay -D hw:1,0 ../data/click.wav") || system("aplay -D hw:0,3 ../data/click.wav")  || system("beep -l 2")
   end
 end
 

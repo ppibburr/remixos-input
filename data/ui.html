@@ -228,6 +228,26 @@
 .flex-end .key {
   align-self: flex-end;
 }
+
+.dpad {
+  background-color:#ff0000;
+}
+
+.mod {
+  background-color:#000;
+}
+
+.adb {
+  background-color:#0009cc;
+}
+
+.ui {
+  background-color:#585808;
+}
+
+#coords {
+  color:red;
+}
   </style>
 
   <title></title>
@@ -325,6 +345,45 @@ $(".app").on("click", function(evt) {
     }
   });
   console.log(this);
+});
+
+$('.dpad').on('touchstart', function(evt) {
+  i = ['kbu','kbl','kbd','kbr'].indexOf($(this).attr('id'));
+  name = ['up','left','down','right'][i]; 
+  
+  send({
+    type: 'keyboard',
+    data: {
+      key: name,
+      action: 'down'
+    }
+  });
+});
+
+$('.dpad').on('touchend', function(evt) {
+  i = ['kbu','kbl','kbd','kbr'].indexOf($(this).attr('id'));
+  name = ['up','left','down','right'][i]; 
+  
+  send({
+    type: 'keyboard',
+    data: {
+      key: name,
+      action: 'up'
+    }
+  });
+});
+
+$('.adb').on('click', function(evt) {
+  i = ['kbb','kbh','kbs','kbp'].indexOf($(this).attr('id'));
+  name = ['back','home','search','media_toggle'][i]; 
+  
+  send({
+    type: 'keyboard',
+    data: {
+      key: name,
+      action: 'adb'
+    }
+  });
 });
 
 $(".btn").on("touchend", function(evt) {
@@ -559,7 +618,7 @@ for (var i=0;i < ea.length;i++) {
       <div class=key>0</div>
       <div class=key>-</div>
       <div class=key>=</div>
-      <div class='key flex-more'>BkSp</div>
+      <div class='key flex-more mod'>BkSp</div>
       <div class='space'></div>
       <div class="joy-ph cell" id=kbm>
         <div class="space"></div>
@@ -582,7 +641,7 @@ for (var i=0;i < ea.length;i++) {
       <div class=key>[</div>
       <div class=key>]</div>
       <div class=key>\</div>
-      <div class="btn key cell btn-small" id=kbr><img src="icons/White/Sync.png" ></img></div>
+      <div class="btn key cell btn-small ui" id=kbr><img src="icons/White/Sync.png" ></img></div>
       <div class='space'></div>
     </div>
     
@@ -612,23 +671,23 @@ for (var i=0;i < ea.length;i++) {
       <div class=key>,</div>
       <div class=key>.</div>
       <div class=key>/</div>
-      <div class=key><div class="btn key cell btn-small" id=kbu><img src="icons/White/Arrow Up.png" ></img></div></div>
-      <div class=key>Enter</div>
+      <div class=key><div class="btn key cell btn-small dpad" id=kbu><img src="icons/White/Arrow Up.png" ></img></div></div>
+      <div class='key mod'>Enter</div>
     </div>    
     
     <div class=row>
-      <div class='key '>Shift</div>
-      <div class='key '>Tab</div>
-      <div class="btn key cell btn-small" id=kbb><img src="icons/White/Arrow Circle Left.png" ></img></div>
+      <div class='key mod'>Shift</div>
+      <div class='key mod'>Tab</div>
+      <div class="btn key cell btn-small adb" id=kbb><img src="icons/White/Arrow Circle Left.png" ></img></div>
       <div class='key flex3'>Space</div>
-      <div class="btn key cell btn-small" id=kbh><img src="icons/White/Home.png" ></img></div>
-      <div class="btn key cell btn-small" id=kbs><img src="icons/White/Search.png" ></img></div>
-      <div class="btn key cell btn-small" id=kbp><img src="icons/White/Play.png" ></img></div>
-      <div class='key '>Ctrl</div>
+      <div class="btn key cell btn-small adb" id=kbh><img src="icons/White/Home.png" ></img></div>
+      <div class="btn key cell btn-small adb" id=kbs><img src="icons/White/Search.png" ></img></div>
+      <div class="btn key cell btn-small adb" id=kbp><img src="icons/White/Play.png" ></img></div>
+      <div class='key mod'>Ctrl</div>
 
-      <div class=key><div class="btn key cell btn-small" id=kbl><img src="icons/White/Arrow Left.png" ></img></div></div>
-      <div class=key><div class="btn key cell btn-small" id=kbd><img src="icons/White/Arrow Down.png" ></img></div></div>
-      <div class=key><div class="btn key cell btn-small" id=kbr><img src="icons/White/Arrow Right.png" ></img></div></div>
+      <div class=key><div class="btn key cell btn-small dpad" id=kbl><img src="icons/White/Arrow Left.png" ></img></div></div>
+      <div class=key><div class="btn key cell btn-small dpad" id=kbd><img src="icons/White/Arrow Down.png" ></img></div></div>
+      <div class=key><div class="btn key cell btn-small dpad" id=kbr><img src="icons/White/Arrow Right.png" ></img></div></div>
       
            <div class='space'></div>
       <div class="joy-ph cell" id=kbw>

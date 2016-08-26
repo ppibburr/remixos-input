@@ -134,5 +134,9 @@ CHARMAP = {
   'Enter'.to_sym => KEY_ENTER,
   'Space'.to_sym => KEY_SPACE,
   'BkSp'.to_sym => KEY_BACKSPACE,
-  '/'.to_sym    => KEY_SLASH        
+  '/'.to_sym    => KEY_SLASH,
+  :left => KEY_LEFT,
+  :right => KEY_RIGHT,
+  :up    => KEY_UP,
+  :down  => KEY_DOWN   
 }
