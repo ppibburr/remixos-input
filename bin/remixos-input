@@ -381,10 +381,6 @@ $axi = [
 $x = 0
 $y = 0
 
-SCREEN = {
-  :width => 1920,
-  :height => 1080
-}
 
 
 IP=`/sbin/ifconfig #{ARGV[0] ||= "eth0"} | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`.strip 
@@ -433,9 +429,11 @@ get '/' do
   else
     request.websocket do |ws|
       ws.onopen do
-        uinput REL_X, -1*SCREEN[:width], 0
-        uinput REL_Y, -1*SCREEN[:height], 1
+        
+        init_mouse_coords
+        
         ws.send("0 0")
+    
         settings.sockets << ws
       end
       
@@ -491,22 +489,22 @@ get '/' do
           case axis
           when AXIS_MEDIA
             case od
-            when "up"
-              uinput KEY_VUP, 0, 1
-            when "down"
-              uinput KEY_VDOWN, 0, 1
+            when 'up'
+              release KEY_VUP
+            when 'down'
+              release KEY_VDOWN
             end
           
           when AXIS_DPAD
             case od
             when 'up'
-              uinput KEY_UP, 0, 1
+              release KEY_UP
             when 'down'
-              uinput KEY_DOWN, 0, 1
+              release KEY_DOWN
             when 'right'
-              uinput KEY_RIGHT, 0, 1
+              release KEY_RIGHT
             when 'left'
-              uinput KEY_LEFT, 0, 1              
+              release KEY_LEFT             
             end
           end
         end
@@ -515,9 +513,7 @@ get '/' do
           axis=evt.data["axis"]
           
           if axis == AXIS_WHEEL or axis == AXIS_KBW
-            play_click
-            uinput BTN_1, 1, 1
-            uinput BTN_1, 0, 1
+            click BTN_1
             
             next
           end
@@ -525,23 +521,13 @@ get '/' do
           case axis
           
           when AXIS_MEDIA
-            play_click
-            uinput KEY_PLAYPAUSE, 1, 1
-            uinput KEY_PLAYPAUSE, 0, 1
-            
+            click KEY_PLAYPAUSE
           when AXIS_DPAD
-            play_click
-            uinput KEY_ENTER, 1, 0
-            uinput KEY_ENTER, 0, 1
-          
+            click KEY_ENTER
           when AXIS_MOUSE
-            play_click
-            uinput BTN_3, 1, 1
-            uinput BTN_3, 0, 1 
+            click BTN_3
           when AXIS_KBM
-            play_click
-            uinput BTN_3, 1, 1
-            uinput BTN_3, 0, 1     
+            click BTN_3  
           end
         end
         
@@ -554,48 +540,46 @@ get '/' do
           when AXIS_MEDIA
             case od
             when 'up'
-              uinput KEY_VUP, 0, 1
+              release KEY_VUP
             when 'down'
-              uinput KEY_VDOWN, 0, 1
+              release KEY_VDOWN
             end
             
             case dir
             when 'up'
-              play_click
-              uinput KEY_VUP, 1, 1
+              press KEY_VUP
             when 'down'
-              play_click
-              uinput KEY_VDOWN, 1, 1
+              press KEY_VDOWN
             end
             
           when AXIS_DPAD
             case od
             when 'up'
-              uinput KEY_UP, 0, 1
+              release KEY_UP
             when 'down'
-              uinput KEY_DOWN, 0, 1
+              release KEY_DOWN
             when 'right'
-              uinput KEY_RIGHT, 0, 1
+              release KEY_RIGHT
             when 'left'
-              uinput KEY_LEFT, 0, 1              
+              release KEY_LEFT             
             end
             
             case dir
             when 'up'
-              play_click
-              uinput KEY_UP, 1, 1
+
+              press KEY_UP
               uinput REL_Y, 1, 1
             when 'down'
-              play_click
-              uinput KEY_DOWN, 1, 1
+
+              press KEY_DOWN
               uinput REL_Y, -1, 1
             when 'right'
-              play_click
-              uinput KEY_RIGHT, 1, 1
+
+              press KEY_RIGHT
               uinput REL_X, 1, 1
             when 'left'
-              play_click
-              uinput KEY_LEFT, 1, 1
+
+              press KEY_LEFT
               uinput REL_X, -1, 1  
             end            
           end
@@ -617,23 +601,8 @@ get '/' do
                 while true
                   dx,dy = @dx, @dy
                   
-                  if @dx != 0 or @dy != 0
-                    $x += @dx
-                    $y += @dy
-                    
-                    $x = SCREEN[:width] if $x > SCREEN[:width]
-                    $y = SCREEN[:height] if $y > SCREEN[:height]
-                    
-                    $x = 0 if $x < 0
-                    $y = 0 if $y < 0
-                    
-                   
-                    settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
-
-                  end
+                  rel_move_mouse(dx,dy)
                   
-                  uinput(REL_X, dx, ( 1)) if dx.abs > 0
-                  uinput(REL_Y, dy * -1, 1) if dy.abs > 0
                   sleep 0.013
                   Thread.pass
                 end
@@ -676,6 +645,8 @@ def press ev, x=nil, y=nil
     abs_move_mouse(x,y)
   end
 
+  play_click
+
   uinput ev,1,1
 end
 
@@ -692,36 +663,107 @@ def swipe x,y,x1,y1
   adb.swipe x,y,x1,y1
 end
 
-def swipe_up amt=5
-  swipe $x,$y,$x+amt,$y
+def swipe_up amt=5, x = $x, y = $y
+  swipe x,y,x+amt,y
 end
 
-def swipe_right amt=5
-  swipe $x,$y,$x+amt,$y
+def swipe_right amt=5, x = $x, y = $y
+  swipe x,y,x+amt,y
 end
 
-def swipe_left amt=5
-  swipe $x,$y,$x-amt,$y
-end
-
-
-def swipe_up amt=5
-  swipe $x,$y,$x,$y-amt
+def swipe_left amt=5, x = $x, y = $y
+  swipe x,y,x-amt,y
 end
 
 
-def swipe_up amt=5
-  swipe $x,$y,$x,$y+amt
+def swipe_up amt=5, x = $x, y = $y
+  swipe x,y,x,y-amt
+end
+
+
+def swipe_up amt=5, x = $x, y = $y
+  swipe x,y,x,y+amt
+end
+
+# abs start / finish
+def drag_abs x,y,x1,y1,step = 0
+  abs_move_mouse(x,y)
+  
+  press BTN_1
+  
+  rel_move_mouse(x1-x,y1-y)
+  
+  $x, $y = x1,y1
+
+  release BTN_1
+end
+
+# rel start of 0, rel finish
+def drag x,y, step = 0
+  press BTN_1
+  
+  rel_move_mouse(x1-x,y1-y)
+  
+  $x += x
+  $y += y
+  
+  release BTN_1
+end
+
+### Relative drags
+def drag_up amt=5, step=0
+  drag 0, amt, step
+end
+
+def drag_down amt=5, step=0
+  drag 0, -1*amt, step
+end
+
+def drag_left amt=5, step=0
+  drag -1*amt, 0, step
+end
+
+def drag_right amt=5, step=0
+  drag amt, 0, step
+end
+###
+
+
+def init_mouse_coords
+  uinput REL_X, -1*SCREEN[:width], 1
+  uinput REL_Y, -1*SCREEN[:height], 1
 end
 
 def abs_move_mouse x,y
-  uinput REL_X, -1*SCREEN[:width], 1
-  uinput REL_Y, -1*SCREEN[:height], 1
+  init_mouse_coords
   
   sleep 0.1
     
-  uinput REL_X, (x || 0), 1
-  uinput REL_Y, (y || 0), 1
+  x ||= 0
+  y ||= 0
+  
+  rel_move_mouse x,y
+end
+
+
+def rel_move_mouse x,y
+  if x != 0 or y != 0
+	$x += x
+	$y += y
+	
+	$x = SCREEN[:width] if $x > SCREEN[:width]
+	$y = SCREEN[:height] if $y > SCREEN[:height]
+	
+	$x = 0 if $x < 0
+	$y = 0 if $y < 0
+	
+   
+	settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
+
+  end
+  
+  uinput(REL_X, x, ( 1)) if x.abs > 0
+  uinput(REL_Y, y * -1, 1) if y.abs > 0
 end
 
 Thread.new do
