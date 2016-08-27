@@ -248,6 +248,20 @@
 #coords {
   color:red;
 }
+
+#key {
+	background-color:#fff;
+	width:50px;
+	height:50px;
+	font-size:xx-large;
+	position:fixed;
+	top:10px;
+	left:calc(50% - 25px);
+	z-index:1001;
+	text-align:center;
+	valign:bottom;
+	border-radius:0.25em;
+}
   </style>
 
   <title></title>
@@ -268,7 +282,7 @@ document.addEventListener('contextmenu', function(e) {
 var joysticks = [];
 
 $('#keyboard').addClass('hide');
-
+$('#key').addClass('hide');
 $('.input').on('click', function() {
   $('#keyboard').removeClass('hide');
 });
@@ -330,7 +344,6 @@ $(".btn").on("touchstart", function(evt) {
 $(".key").on("touchstart", function(evt) {
   $(evt.target).addClass('depressed');
   navigator.vibrate(50);
-  
 });
 
 
@@ -386,6 +399,16 @@ $('.adb').on('click', function(evt) {
   });
 });
 
+$('#search').on('click', function() {
+  send({
+    type: 'keyboard',
+    data: {
+      key: 'search',
+      action: 'adb'
+    }
+  });	
+});
+
 $(".btn").on("touchend", function(evt) {
   $(evt.target).removeClass('depressed');
 });
@@ -398,7 +421,13 @@ $(".key:not('.btn')").on('touchstart', function(evt) {
   val=evt.target.innerText;
   if (val != '') {
     console.log(val);
-    
+    y = $(evt.target).offset().top;
+    x = $(evt.target).offset().left;
+   
+    $('#key').removeClass('hide');
+   $('#key').css('top', (y-80)+"px");
+   $('#key').css('left', (x)+"px");
+      $('#key').text(val);
     send({
       type: 'keyboard',
       data: {
@@ -413,6 +442,9 @@ $(".key:not('.btn')").on('touchend', function(evt) {
   val=evt.target.innerText;
   if (val != '') {
     console.log(val);
+    window.setTimeout(function() {
+      $('#key').addClass('hide');
+    }, 222);
     
     send({
       type: 'keyboard',
@@ -573,7 +605,7 @@ for (var i=0;i < ea.length;i++) {
     <div class='space'></div>
     <div class="btn cell flex-none btn-small" id=sync><img src="icons/White/Sync.png" ></img></div>
     <div class="cell flex-more input"></div>
-    <div class="btn cell flex-none btn-small"><img src="icons/White/Search.png" ></img></div>
+    <div class="btn cell flex-none btn-small" id=search><img src="icons/White/Search.png" ></img></div>
     <div class='space flex-more'></div>
     <div class="joy-ph cell" id=tr>
       <div class="space"></div>
@@ -697,6 +729,8 @@ for (var i=0;i < ea.length;i++) {
       </div>
     </div>    
   </div>
+  
+  <div id=key></div>
 </div>
   
 </body>
