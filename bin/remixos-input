@@ -588,6 +588,10 @@ get '/' do
           end
         end
         
+        if evt.type == 'update'
+          update()
+        end
+        
         if evt.is_a?(MotionEvent)
           speed = $axi[evt.axis]["speed"] = evt.distance / 5.0
           
@@ -620,6 +624,15 @@ get '/' do
         settings.sockets.delete(ws)
       end
     end
+  end
+end
+
+def update
+  fork do
+    Dir.chdir "../"
+    system "git pull origin master"
+    Dir.chdir "./scripts"
+    system "./init"
   end
 end
 
