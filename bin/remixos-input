@@ -319,7 +319,7 @@ class ClickEvent < Event
     if x and y
       click x, y
     else
-      click $x,$y
+      click
     end
   end
 end
