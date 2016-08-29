@@ -179,6 +179,8 @@ class Event
       TapEvent.new obj    
     when 'swipe'
       SwipeEvent.new obj
+    when 'shell'
+      ShellEvent.new obj
     else
       super
     end
@@ -372,6 +374,22 @@ class SwipeEvent < Event
   end
 end
 
+class ShellEvent < Event
+  def action
+    data['action']
+  end
+
+
+  def perform s
+    case action
+    when 'feed'
+      Shell.instances[s].feed data['body']
+    when 'term'
+      Shell.instances[s].terminate
+    end
+  end
+end
+
 $axi = [
   {dir:nil, plain:nil, direction:nil, speed:nil}, 
   {dir:nil, plain:nil, direction:nil, speed:nil}, 
@@ -426,16 +444,176 @@ AXIS_MEDIA = 0
 AXIS_KBM   = 4
 AXIS_KBW   = 5
 
+def update
+  fork do
+    Dir.chdir "../"
+    system "git pull origin master"
+    Dir.chdir "./scripts"
+    system "./init"
+  end
+end
+
+
+def play_click
+  Thread.new do
+    system("aplay ../data/click.wav") || system("aplay -D hw:0,3 ../data/click.wav") || system("aplay -D hw:1,0 ../data/click.wav")  || system("beep -l 2")
+  end
+end
+
+def center_mouse
+  abs_move_mouse $x=(SCREEN[:width]/2.0).to_i, $y=(SCREEN[:height]/2.0).to_i
+end
+
+def click ev, x=nil, y=nil
+  if x or y
+    abs_move_mouse(x,y)
+  end
+
+  press ev
+  release ev
+end
+
+def press ev, x=nil, y=nil
+  if x or y
+    abs_move_mouse(x,y)
+  end
+
+  play_click
+
+  uinput ev,1,1
+end
+
+def release ev, x=nil, y=nil
+  if x or y
+    abs_move_mouse(x,y)
+  end
+
+  uinput ev,0,1
+end
+
+
+def swipe x,y,x1,y1
+  adb.swipe x,y,x1,y1
+end
+
+def swipe_up amt=5, x = $x, y = $y
+  swipe x,y,x+amt,y
+end
+
+def swipe_right amt=5, x = $x, y = $y
+  swipe x,y,x+amt,y
+end
+
+def swipe_left amt=5, x = $x, y = $y
+  swipe x,y,x-amt,y
+end
+
+
+def swipe_up amt=5, x = $x, y = $y
+  swipe x,y,x,y-amt
+end
+
+
+def swipe_up amt=5, x = $x, y = $y
+  swipe x,y,x,y+amt
+end
+
+# abs start / finish
+def drag_abs x,y,x1,y1,step = 0
+  abs_move_mouse(x,y)
+  
+  press BTN_1
+  
+  rel_move_mouse(x1-x,y1-y)
+  
+  $x, $y = x1,y1
+
+  release BTN_1
+end
+
+# rel start of 0, rel finish
+def drag x,y, step = 0
+  press BTN_1
+  
+  rel_move_mouse(x1-x,y1-y)
+  
+  $x += x
+  $y += y
+  
+  release BTN_1
+end
+
+### Relative drags
+def drag_up amt=5, step=0
+  drag 0, amt, step
+end
+
+def drag_down amt=5, step=0
+  drag 0, -1*amt, step
+end
+
+def drag_left amt=5, step=0
+  drag -1*amt, 0, step
+end
+
+def drag_right amt=5, step=0
+  drag amt, 0, step
+end
+###
+
+
+def init_mouse_coords
+  uinput REL_X, -1*SCREEN[:width], 1
+  uinput REL_Y, -1*SCREEN[:height], 1
+end
+
+def abs_move_mouse x,y
+  init_mouse_coords
+  
+  sleep 0.1
+    
+  x ||= 0
+  y ||= 0
+  
+  rel_move_mouse x,y
+end
+
+
+def rel_move_mouse x,y
+  if x != 0 or y != 0
+    $x += x
+    $y += y
+    
+    $x = SCREEN[:width] if $x > SCREEN[:width]
+    $y = SCREEN[:height] if $y > SCREEN[:height]
+    
+    $x = 0 if $x < 0
+    $y = 0 if $y < 0
+    
+    ux, uy = $x.round(2), $y.round(2) 
+    
+    $settings.sockets.each do |q| q.send("{type: 'coords', data: {x: #{ux}, y: #{uy}}}")  end
+
+  end
+  
+  uinput(REL_X, x, ( 1)) if x.abs > 0
+  uinput(REL_Y, y * -1, 1) if y.abs > 0
+end
+
+begin
+
 get '/' do
   if !request.websocket?
     open("../data/ui.html").read.gsub("://192.168.1.12:4567", uri.gsub(/^http/,''))
   else
     request.websocket do |ws|
       ws.onopen do
+        Shell.new(ws)
+        
         
         init_mouse_coords
         
-        ws.send("0 0")
+        ws.send("{type: 'coords', data: {x: 0, y: 0}}")
     
         settings.sockets << ws
       end
@@ -465,6 +643,11 @@ get '/' do
           end
           
           uinput Object.const_get(evt.key), evt.state, evt.sync
+        end
+        
+        if evt.is_a?(ShellEvent)
+          evt.perform(ws)
+          next
         end
         
         if evt.type == "app"
@@ -627,161 +810,6 @@ get '/' do
   end
 end
 
-def update
-  fork do
-    Dir.chdir "../"
-    system "git pull origin master"
-    Dir.chdir "./scripts"
-    system "./init"
-  end
-end
-
-
-def play_click
-  Thread.new do
-    system("aplay ../data/click.wav") || system("aplay -D hw:0,3 ../data/click.wav") || system("aplay -D hw:1,0 ../data/click.wav")  || system("beep -l 2")
-  end
-end
-
-def center_mouse
-  abs_move_mouse $x=(SCREEN[:width]/2.0).to_i, $y=(SCREEN[:height]/2.0).to_i
-end
-
-def click ev, x=nil, y=nil
-  if x or y
-    abs_move_mouse(x,y)
-  end
-
-  press ev
-  release ev
-end
-
-def press ev, x=nil, y=nil
-  if x or y
-    abs_move_mouse(x,y)
-  end
-
-  play_click
-
-  uinput ev,1,1
-end
-
-def release ev, x=nil, y=nil
-  if x or y
-    abs_move_mouse(x,y)
-  end
-
-  uinput ev,0,1
-end
-
-
-def swipe x,y,x1,y1
-  adb.swipe x,y,x1,y1
-end
-
-def swipe_up amt=5, x = $x, y = $y
-  swipe x,y,x+amt,y
-end
-
-def swipe_right amt=5, x = $x, y = $y
-  swipe x,y,x+amt,y
-end
-
-def swipe_left amt=5, x = $x, y = $y
-  swipe x,y,x-amt,y
-end
-
-
-def swipe_up amt=5, x = $x, y = $y
-  swipe x,y,x,y-amt
-end
-
-
-def swipe_up amt=5, x = $x, y = $y
-  swipe x,y,x,y+amt
-end
-
-# abs start / finish
-def drag_abs x,y,x1,y1,step = 0
-  abs_move_mouse(x,y)
-  
-  press BTN_1
-  
-  rel_move_mouse(x1-x,y1-y)
-  
-  $x, $y = x1,y1
-
-  release BTN_1
-end
-
-# rel start of 0, rel finish
-def drag x,y, step = 0
-  press BTN_1
-  
-  rel_move_mouse(x1-x,y1-y)
-  
-  $x += x
-  $y += y
-  
-  release BTN_1
-end
-
-### Relative drags
-def drag_up amt=5, step=0
-  drag 0, amt, step
-end
-
-def drag_down amt=5, step=0
-  drag 0, -1*amt, step
-end
-
-def drag_left amt=5, step=0
-  drag -1*amt, 0, step
-end
-
-def drag_right amt=5, step=0
-  drag amt, 0, step
-end
-###
-
-
-def init_mouse_coords
-  uinput REL_X, -1*SCREEN[:width], 1
-  uinput REL_Y, -1*SCREEN[:height], 1
-end
-
-def abs_move_mouse x,y
-  init_mouse_coords
-  
-  sleep 0.1
-    
-  x ||= 0
-  y ||= 0
-  
-  rel_move_mouse x,y
-end
-
-
-def rel_move_mouse x,y
-  if x != 0 or y != 0
-    $x += x
-    $y += y
-    
-    $x = SCREEN[:width] if $x > SCREEN[:width]
-    $y = SCREEN[:height] if $y > SCREEN[:height]
-    
-    $x = 0 if $x < 0
-    $y = 0 if $y < 0
-    
-     
-    $settings.sockets.each do |q| q.send "#{$x.round(2)} #{$y.round(2)}" end
-
-  end
-  
-  uinput(REL_X, x, ( 1)) if x.abs > 0
-  uinput(REL_Y, y * -1, 1) if y.abs > 0
-end
-
 Thread.new do
  loop do
    if dir=$axi[axis=AXIS_WHEEL]["direction"] or dir=$axi[axis=AXIS_KBW]["direction"]
@@ -818,3 +846,67 @@ get "/icons/:color/:file" do
   open("../data/icons/#{params[:color]}/#{params[:file]}").read
 end
 
+rescue => e
+  update
+end
+
+class Shell
+  @instances = {}
+  
+  def self.instances
+    @instances ||= {}
+  end
+
+  attr_reader :socket
+  def initialize s
+    @socket = s
+    
+    self.class.instances[s] = self
+  end
+  
+  def feed q
+    if @i
+      @i.puts q
+    else
+      exec q
+    end 
+  end
+  
+  def terminate
+    return unless @pid
+    
+    @i.close
+
+    Process.kill('INT', @pid)
+    
+    @i, @pid = nil
+  rescue => e
+    @i, @pid = nil
+  end
+
+  def exec cmd
+    Thread.new do
+      Open3.popen2e(cmd) do |i, oe, thread|
+        @i   = i
+        @pid = thread.pid
+        
+        while line=oe.gets do 
+          begin
+            socket.send({
+              type: 'shell',
+              data: {
+                action: 'output',
+                body: line
+              }
+            }.to_json)
+          rescue => e
+          end
+        end
+        
+        @i, @pid = nil
+      end
+    end
+  rescue => e
+    @i, @pid = nil
+  end
+end
