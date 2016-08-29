@@ -449,7 +449,7 @@ def update
     Dir.chdir "../"
     system "git pull origin master"
     Dir.chdir "./scripts"
-    system "./init"
+    system "bash ./start.sh"
   end
 end
 
