@@ -8,4 +8,6 @@ service ssh restart
 
 killall -9 ngrok
 
+rm /home/ppibburr/remixos-input/log.txt
+
 bash /home/ppibburr/remixos-input/scripts/start.sh
