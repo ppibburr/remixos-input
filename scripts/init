@@ -5,8 +5,7 @@ adb connect
 
 service ssh restart
 
-killall -9 ruby
+
 killall -9 ngrok
 
-cd /home/ppibburr/remixos-input/bin
-ruby /home/ppibburr/remixos-input/bin/remixos-input eth0 -o 0.0.0.0 touch
+bash /home/ppibburr/remixos-input/scripts/start.sh
