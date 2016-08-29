@@ -262,6 +262,26 @@
 	valign:bottom;
 	border-radius:0.25em;
 }
+
+#shell {
+	position:absolute;
+	top: 50px;
+	left:0px;
+    height:calc(100% - 50px);
+    width:100%;
+}
+
+#output {
+  height:calc(100% - 50px);
+  width:100%;	
+  background-color:#000;
+  color:white;
+}
+
+#input {
+	width:100%;
+	height:50px;
+}
   </style>
 
   <title></title>
@@ -560,7 +580,15 @@ for (var i=0;i < ea.length;i++) {
 
  ws.onmessage = function (evt) 
  { 
-    $("#coords").text(evt.data);
+    // $("#coords").text(evt.data);
+    obj = JSON.parse(evt.data);
+    
+    if (obj.type == "shell") {
+		if (obj.data.action == "output") {
+			o = $("#output");
+			o.text(o.text() + obj.data.body);
+		}
+	}
 
  };
 
@@ -731,6 +759,11 @@ for (var i=0;i < ea.length;i++) {
   </div>
   
   <div id=key></div>
+  
+  <div id=shell>
+    <div id=output></div>
+    <input type='text' id=input></input>
+  </div>
 </div>
   
 </body>
