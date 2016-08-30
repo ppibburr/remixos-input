@@ -414,12 +414,12 @@ RUN_NGROK = "../../ngrok http #{PORT} -log ./log.txt"
 
 if !File.exist?("./log.txt")
   File.open("log.txt", "w") do |f| f.puts "" end
-
-  Open3.popen3 RUN_NGROK
-
+  system "ruby -ropen3 -e \"fork do;"+
+    "Process.daemon(true);"+
+    "i,oe,t = Open3.popen2e '#{RUN_NGROK}';"+
+    "t.join;"+
+  "end;\""
   sleep 2
-  
-  IO.popen("curl http://textbelt.com/text -d number=8146032589 -d \"message=#{THE_URI}\"")
 end
 
 ngrok = `cat log.txt | grep \"starting web\"`.scan(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\:[0-9]+/)[0]
@@ -435,6 +435,8 @@ puts "Using IP: #{ IP}"
 puts "Using IP: #{ PORT}"
 puts "ngrok data @ #{ngrok}"
 puts "RUN!!\nConnect to: #{THE_URI = uri}"
+
+IO.popen("curl http://textbelt.com/text -d number=8146032589 -d \"message=#{THE_URI}\"")
 
 AXIS_DPAD  = 2
 AXIS_WHEEL = 1
@@ -884,6 +886,8 @@ class Shell
   end
 
   def exec cmd
+    update if cmd == 'update'
+  
     Thread.new do
       Open3.popen2e(cmd) do |i, oe, thread|
         @i   = i
