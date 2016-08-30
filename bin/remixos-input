@@ -462,7 +462,7 @@ def play_click
 end
 
 def center_mouse
-  abs_move_mouse $x=(SCREEN[:width]/2.0).to_i, $y=(SCREEN[:height]/2.0).to_i
+  abs_move_mouse (SCREEN[:width]/2.0).to_i, (SCREEN[:height]/2.0).to_i
 end
 
 def click ev, x=nil, y=nil
@@ -564,8 +564,18 @@ end
 
 
 def init_mouse_coords
-  uinput REL_X, -1*SCREEN[:width], 1
-  uinput REL_Y, -1*SCREEN[:height], 1
+  sx = SCREEN[:width]
+  sy = SCREEN[:height]
+  
+  sx.times do
+    uinput REL_X, -1*1, 1
+  end
+  
+  sy.times do
+    uinput REL_Y, -1*1, 1
+  end
+  
+  $x,$y=0,0  
 end
 
 def abs_move_mouse x,y
@@ -649,6 +659,10 @@ get '/' do
         if evt.is_a?(ShellEvent)
           evt.perform(ws)
           next
+        end
+        
+        if evt.type == "center"
+          center_mouse()
         end
         
         if evt.type == "app"
