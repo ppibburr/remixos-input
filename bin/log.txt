@@ -1,0 +1,23 @@
+
+t=2016-08-31T06:41:45-0400 lvl=info msg="no configuration paths supplied"
+t=2016-08-31T06:41:45-0400 lvl=info msg="using configuration at default config path" path=/root/.ngrok2/ngrok.yml
+t=2016-08-31T06:41:45-0400 lvl=info msg="open config file" path=/root/.ngrok2/ngrok.yml err=nil
+t=2016-08-31T06:41:45-0400 lvl=info msg="run component" obj=controller comp="signal handler"
+t=2016-08-31T06:41:45-0400 lvl=info msg="run component" obj=controller comp=web
+t=2016-08-31T06:41:45-0400 lvl=info msg="run component" obj=controller comp=storage
+t=2016-08-31T06:41:45-0400 lvl=info msg="run component" obj=controller comp=updater
+t=2016-08-31T06:41:45-0400 lvl=info msg="run component" obj=controller comp="Tunnel session"
+t=2016-08-31T06:41:45-0400 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040
+t=2016-08-31T06:41:45-0400 lvl=info msg="tunnel session started" obj=tunSess
+t=2016-08-31T06:41:45-0400 lvl=info msg="client session established" obj=csess id=59f388d13fd5
+t=2016-08-31T06:41:47-0400 lvl=info msg=start pg=/inspect/http id=347ce94d23863503
+t=2016-08-31T06:41:47-0400 lvl=info msg=end pg=/inspect/http id=347ce94d23863503 status=200 dur=3.286595ms
+t=2016-08-31T06:41:48-0400 lvl=info msg="join connections" obj=join id=83b97c92dc29 l=127.0.0.1:4567 r=64.235.154.109:38358
+t=2016-08-31T06:42:30-0400 lvl=info msg="join connections" obj=join id=7ecc468eafcd l=127.0.0.1:4567 r=24.23.105.146:50045
+t=2016-08-31T06:43:06-0400 lvl=info msg="join connections" obj=join id=bf02fa28ddff l=127.0.0.1:4567 r=24.23.105.146:50053
+t=2016-08-31T06:53:15-0400 lvl=info msg="join connections" obj=join id=1f7fb3971114 l=127.0.0.1:4567 r=24.23.105.146:50058
+t=2016-08-31T06:58:42-0400 lvl=info msg="join connections" obj=join id=f677b37266b8 l=127.0.0.1:4567 r=24.23.105.146:50061
+t=2016-08-31T07:24:50-0400 lvl=info msg="join connections" obj=join id=e798b1955e59 l=127.0.0.1:4567 r=24.23.105.146:58603
+t=2016-08-31T07:24:56-0400 lvl=info msg="join connections" obj=join id=5ffb2857c687 l=127.0.0.1:4567 r=24.23.105.146:58604
+t=2016-08-31T07:26:14-0400 lvl=info msg="join connections" obj=join id=089dd9a1a896 l=127.0.0.1:4567 r=24.23.105.146:58613
+t=2016-08-31T17:50:07-0400 lvl=info msg="join connections" obj=join id=1980faa77e14 l=127.0.0.1:4567 r=24.23.105.146:40170
