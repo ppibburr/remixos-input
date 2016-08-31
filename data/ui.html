@@ -38,7 +38,7 @@
 }
 
 .btn {
-  background-color:#FF0000;
+  background-color:#241450;
   height:1px;
   width:1px;
   min-width:50px !important;
@@ -101,17 +101,24 @@
 .joystick img {
   height:50px;
   position:relative;
-  left:27%;
+      left: calc(50% - 15px);
+      top:12px;
+
 }
   
 
 .joy-ph {
   border-radius: 50%;
-  background-color:rgba(0,255,78,0.78);
+  background:repeating-radial-gradient( circle at 0 0, #040815, #152031 5px );
   width:200px;
   height:200px;
   flex-grow:0;
   color:red;
+  border-right-color:red;
+  border-bottom-color:green;
+  border-top-color:blue;
+  border-left-color:yellow;
+  border-style:dotted;
 }
 
 .flex-more {
@@ -285,11 +292,14 @@
 
 #center {
   position: absolute;
-  top: calc(50% - 25px);
-  left: calc(50% - 25px);
+  top: calc(50% + 30px);
+  left: calc(50% - 0px);
   height:50px;
   width:50px;
-  background-color:#fff;
+  background-color:#f00;
+  text-align:center;
+  border-radius:48%;
+  
 }
   </style>
 
@@ -435,7 +445,9 @@ $('#search').on('click', function() {
       key: 'search',
       action: 'adb'
     }
-  });	
+  });
+  
+  $('#keyboard').removeClass("hide");	
 });
 
 $(".btn").on("touchend", function(evt) {
@@ -632,8 +644,8 @@ for (var i=0;i < ea.length;i++) {
     <div class="btn cell app" id=tv><img src="icons/Black/TV.png" ></img></div>
     <div class="btn cell app" id=chrome><img src="icons/Black/Chrome.png" ></img></div>
     <div class="btn cell app" id=music><img src="icons/Black/Music.png" ></img></div>    
-    <div class="btn cell app"><img src="" ></img></div>   
-    <div class="btn cell app"><img src="" ></img></div>       
+    <div class="btn cell app" id=app_menu><img src="icons/Black/List.png" ></img></div>   
+    <div class="btn cell app" id=settings><img src="icons/White/Gear.png" ></img></div>       
   </div>
 
   <div class='row' id=coords>
@@ -781,7 +793,8 @@ for (var i=0;i < ea.length;i++) {
     <div id=output></div>
     <input type='text' id=input></input>
   </div>
-  <div id=center>
+  <div id=center class=btn>
+    x
   </div>
 </div>
   

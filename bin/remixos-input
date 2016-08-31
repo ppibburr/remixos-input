@@ -33,7 +33,8 @@ APPS = {
   hbo: 'com.HBO',
   chrome: 'com.android.chrome',
   music: 'com.spotify.music',
-  amazon: 'com.amazon.avod.thirdpartyclient'
+  amazon: 'com.amazon.avod.thirdpartyclient',
+  settings: 'com.android.settings'
 }
 
 class ADB
@@ -137,13 +138,26 @@ class ADB
     when "com.HBO"
       tap 1620, 20
     when "com.amazon.avod.thirdpartyclient"
-      tap 1822, 142
+      tap 1830, 90
     else
       keyevent 84
     end
     
     center_mouse
   end
+  
+  def app_menu
+    case active
+    when "com.HBO"
+      tap 26,60
+    when "com.amazon.avod.thirdpartyclient"
+      tap 26,60
+    else
+      tap 26,60
+    end
+    
+    abs_move_mouse(80,100)
+  end   
 end
 
 def adb
@@ -457,7 +471,8 @@ end
 
 def play_click
   Thread.new do
-    system("aplay ../data/click.wav") || system("aplay -D hw:0,3 ../data/click.wav") || system("aplay -D hw:1,0 ../data/click.wav")  || system("beep -l 2")
+    #system("aplay ../data/click.wav") == 1 || system("aplay -D hw:0,3 ../data/click.wav") == 1 || system("aplay -D hw:1,0 ../data/click.wav") == 1  || nil
+    system("beep -l 2")
   end
 end
 
@@ -567,13 +582,13 @@ def init_mouse_coords
   sx = SCREEN[:width]
   sy = SCREEN[:height]
   
-  sx.times do
-    uinput REL_X, -1*1, 1
-  end
+ # sx.times do
+    uinput REL_X, -1*sx, 1
+ # end
   
-  sy.times do
-    uinput REL_Y, -1*1, 1
-  end
+ # sy.times do
+    uinput REL_Y, -1*sy, 1
+ # end
   
   $x,$y=0,0  
 end
@@ -586,14 +601,14 @@ def abs_move_mouse x,y
   x ||= 0
   y ||= 0
   
-  rel_move_mouse x,y
+  rel_move_mouse x,-1*y
 end
 
 
 def rel_move_mouse x,y
   if x != 0 or y != 0
     $x += x
-    $y += y
+    $y += y*-1
     
     $x = SCREEN[:width] if $x > SCREEN[:width]
     $y = SCREEN[:height] if $y > SCREEN[:height]
@@ -607,8 +622,8 @@ def rel_move_mouse x,y
 
   end
   
-  uinput(REL_X, x, ( 1)) if x.abs > 0
-  uinput(REL_Y, y * -1, 1) if y.abs > 0
+  uinput(REL_X, x, ( 0)) # if x.abs > 0
+  uinput(REL_Y, -1*y, 1) # if y.abs > 0
 end
 
 begin
@@ -622,11 +637,13 @@ get '/' do
         Shell.new(ws)
         
         
-        init_mouse_coords
-        
-        ws.send("{type: 'coords', data: {x: 0, y: 0}}")
+        center_mouse
     
         settings.sockets << ws
+        
+        30.times do
+          play_click
+        end
       end
       
       ws.onmessage do |msg|
@@ -666,7 +683,16 @@ get '/' do
         end
         
         if evt.type == "app"
-          adb.launch APPS[evt.data["id"].to_sym] if evt.data["id"]
+          next if !evt.data["id"]
+          
+          if evt.data["id"] == "app_menu"
+            adb.app_menu
+            next
+          else
+            adb.launch APPS[evt.data["id"].to_sym] if evt.data["id"]
+          end
+          
+          center_mouse
         end
         
         if evt.type == 'end'
