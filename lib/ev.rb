@@ -82,6 +82,10 @@ KEY_LEFTCTRL  = i+=1
 KEY_COMMA     = i+=1
 KEY_DOT       = i+=1
 KEY_SLASH     = i+=1
+KEY_ZOOMIN    = i+=1
+KEY_ZOOMOUT   = i+=1
+KEY_EQUAL     = i+=1
+KEY_MINUS     = i+=1
 
 if ARGV.index('touch')
   ABS_X     = i+=1
@@ -135,8 +139,13 @@ CHARMAP = {
   'Space'.to_sym => KEY_SPACE,
   'BkSp'.to_sym => KEY_BACKSPACE,
   '/'.to_sym    => KEY_SLASH,
-  :left => KEY_LEFT,
-  :right => KEY_RIGHT,
-  :up    => KEY_UP,
-  :down  => KEY_DOWN   
+  :left     => KEY_LEFT,
+  :right    => KEY_RIGHT,
+  :up       => KEY_UP,
+  :down     => KEY_DOWN,
+  :Ctrl     => KEY_LEFTCTRL,
+  :zoom_in  => KEY_ZOOMIN,
+  :zoom_out => KEY_ZOOMOUT,
+  "=".to_sym => KEY_EQUAL,
+  "-".to_sym => KEY_MINUS    
 }

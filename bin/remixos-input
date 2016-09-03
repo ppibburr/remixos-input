@@ -21,7 +21,7 @@ class UInput
   end
   
   def puts s
-    return unless s.split(" ").length == 3
+    return unless s.split(" ").length >= 2
 
     @in.puts s 
   end
@@ -171,6 +171,12 @@ def uinput ev, v, sync = 1
   @uinput.puts "#{ev} #{v.to_i} #{sync}"
 end
 
+def uinput_combo ev1, ev2
+  @uinput ||= UInput.new
+
+  @uinput.puts "#{ev1} #{ev2}"
+end
+
 set :server, 'thin'
 set :sockets, []
 
@@ -238,6 +244,10 @@ class KeyboardEvent < Event
     data["key"].to_sym
   end
   
+  def mod
+    data['mod'].to_sym
+  end
+  
   def action
     data['action']
   end
@@ -253,10 +263,18 @@ class KeyboardEvent < Event
           Thread.pass
         end
         
+        if ev.length == 2
+          play_click
+          uinput_combo *ev
+          next
+        end
+        
         if ev[1] == 1
           play_click
         end
+        
         uinput *ev
+        
       end
     end
   end
@@ -275,6 +293,8 @@ class KeyboardEvent < Event
       return
     end
     
+    return unless n=CHARMAP[name]
+    
     case action
     when 'click'
       uinput CHARMAP[name], 1, 1
@@ -283,6 +303,8 @@ class KeyboardEvent < Event
       uinput1 CHARMAP[name], 1, 1
     when 'up'
       uinput1 CHARMAP[name], 0, 1
+    when 'combo'
+      uinput1 CHARMAP[mod], CHARMAP[name]
     end
   end
 end
@@ -885,6 +907,10 @@ end
 
 get "/icons/:color/:file" do
   open("../data/icons/#{params[:color]}/#{params[:file]}").read
+end
+
+get "/icons/:file" do
+  open("../data/icons/#{params[:file]}").read
 end
 
 rescue => e

@@ -86,6 +86,10 @@ def main():
         uinput.KEY_COMMA,
         uinput.KEY_DOT,
         uinput.KEY_SLASH,
+        uinput.KEY_ZOOMIN,
+        uinput.KEY_ZOOMOUT,
+        uinput.KEY_EQUAL,
+        uinput.KEY_MINUS
     )
     
     if (sys.argv[1] == 'touch'):
@@ -95,12 +99,22 @@ def main():
         time.sleep(0.06)
             # syn=False to emit an "atomic" (5, 5) event.
         line = sys.stdin.readline()
+        
         while line:
+          print(line)
+          print("\n")
+        
           a = line.split(" ")
-          e = events[int(a[0])]
-          v = int(a[1])
-          s = int(a[2]) == 1
-          device.emit(e, v, s)
+          if (len(a) == 2):
+            v  = int(a[0])
+            v2 = int(a[1])
+            device.emit_combo([events[v], events[v2]])
+          else:
+            e = events[int(a[0])]
+            v = int(a[1])
+            s = int(a[2]) == 1
+            device.emit(e, v, s)
+          
           line = sys.stdin.readline()
 
 if __name__ == "__main__":
