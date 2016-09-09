@@ -1,0 +1,243 @@
+<html>
+<head>
+  <meta name="mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=0.65, user-scalable=no" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<style>
+html {
+  height:100%;
+}
+
+body {
+  margin: 0 0 0 0;
+  padding:0 0 0 0;
+  background-color:#000;
+  height:100%;
+}  
+
+.flex-none {
+  flex-grow:0 !important;
+}
+
+.flex-more {
+  flex-grow: 2 !important;
+}
+  
+.flex {
+  display:flex;
+}  
+
+.column {
+  flex-direction:column;
+  height:calc(100%);
+} 
+
+.row {
+  flex-direction:row; 
+  align-items:center; 
+}
+  
+.button {
+  background-color:red;
+  border:solid 1px black;
+  border-radius:0.25em;
+  max-height:50px;
+  min-width:50px !important;
+}
+
+.cell {
+  flex-grow:1;
+  min-height:50px;
+  min-width:1px;
+}
+
+.joystick {
+  height:100px;
+  width:100px;
+  background-color:green;
+  position:relative;
+  border-radius:50%;
+}
+</style>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="http://fiddle.jshell.net/css/result-light.css">
+  
+  <script type="text/javascript" src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  <script type="text/javascript" src="http://yoannmoinet.github.io/nipplejs/javascripts/nipplejs.js"></script>
+</head>
+<body>
+<script src='js/events.js'></script>
+<script src='js/ui.js'></script>
+
+<script>
+var ws;
+  
+function connect(open) {
+ ws = new WebSocket("ws://192.168.1.12:4567");
+
+ ws.onopen = open;
+
+ ws.onmessage = function (evt) { 
+    // $("#coords").text(evt.data);
+    obj = eval('('+evt.data+')');
+    
+    response(obj);
+ };
+
+ ws.onclose = function() { 
+    // websocket ins closed.
+    window.location.href = window.location.href;
+ }; 
+}
+
+function send(e) {
+  ws.send(e);
+}    
+
+function response(obj) {
+  
+}
+
+function init_joysticks() {
+  for (i=0; i < joysticks.length; i++) {
+    console.log(i);
+    
+    dispatch_event(joystick('create', i));
+    
+    joysticks[i].on('start', function(n,d) {
+      console.log(joysticks.indexOf(this));
+      dispatch_event(joystick('start', joysticks.indexOf(this)));
+    }.bind(joysticks[i]));
+
+    joysticks[i].on('end', function(n,d) {
+      dispatch_event(joystick('end', joysticks.indexOf(this)));
+    }.bind(joysticks[i]));
+    
+    joysticks[i].on('dir', function(n,d) {
+      dispatch_event(joystick('digital', joysticks.indexOf(this), d.direction.angle));
+    }.bind(joysticks[i]));    
+    
+    joysticks[i].on('move', function(n,d) {
+      dispatch_event(joystick('motion', joysticks.indexOf(this), motion(
+        d.position.x,
+        d.position.y,
+        d.force,
+        d.distance,
+        d.angle.degree,
+        d.angle.radian  
+      )));
+    }.bind(joysticks[i]));    
+  }
+}
+  
+  ea = document.getElementsByClassName('joystick');
+  var joysticks =[];
+  
+  for (var i=0;i < ea.length;i++) {
+    e = ea.item(i);
+    var options = {
+        zone: e,
+        mode: 'dynamic',
+        position: {
+          left: '50%',
+          top: '50%'
+        },
+        color: "#adeade"
+    };
+    
+    joysticks.push(nipplejs.create(options));
+  }
+  
+
+connect(function() {    
+  dispatch_event(app('config', 'hbo', {
+    package: 'com.HBO',
+    search: [
+      {},
+      {}
+    ]
+  }));
+
+  dispatch_event(app('config', 'hbo', {
+    package: 'com.HBO',
+    search: [
+      {},
+      {}
+    ]
+  }));
+
+  dispatch_event(app('config', 'hbo', {
+    package: 'com.HBO',
+    search: [
+      {},
+      {}
+    ]
+  }));
+
+  dispatch_event(app('config', 'hbo', {
+    package: 'com.HBO',
+    search: [
+      {},
+      {}
+    ]
+  }));
+
+  dispatch_event(app('config', 'hbo', {
+    package: 'com.HBO',
+    search: [
+      {},
+      {}
+    ]
+  }));
+
+  dispatch_event(app('config', 'hbo', {
+    package: 'com.HBO',
+    search: [
+      {},
+      {}
+    ]
+  }));
+
+  dispatch_event(app('config', 'hbo', {
+    package: 'com.HBO',
+    search: [
+      {},
+      {}
+    ]
+  }));
+
+  dispatch_event(device('mouse', 'config', {
+    klass: 'Mouse',
+    
+    axi: {
+      x: ['REL_X', 1920],
+      y: ['REL_Y', 1080]
+    }  
+  }));
+  
+  dispatch_event(device('mouse', 'center'));
+  
+  dispatch_event(joystick('config', 1, { 
+    tap: ('mouse', 'BTN_1', {}),
+    digital: {
+      up: {
+        low: key('down', 'volumeup'),
+        high: key('up', 'volumeup')
+      }
+    }
+  }));  
+  
+  dispatch_event(joystick('config', 3, {
+    motion: {
+      bind: 'mouse'
+    }, 
+    tap: click('mouse', 'BTN_3', {})
+  }));
+
+  init_joysticks();
+});
+
+</script>
+</body>
+</html>

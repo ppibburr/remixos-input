@@ -147,5 +147,7 @@ CHARMAP = {
   :zoom_in  => KEY_ZOOMIN,
   :zoom_out => KEY_ZOOMOUT,
   "=".to_sym => KEY_EQUAL,
-  "-".to_sym => KEY_MINUS    
+  "-".to_sym => KEY_MINUS,
+  :btn_1     => BTN_1,
+  :btn_3     => BTN_3    
 }
