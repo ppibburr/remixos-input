@@ -61,6 +61,11 @@ def update
   fork do
     Dir.chdir "../"
     system "git pull origin master"
+  end
+end
+
+def restart
+  fork do
     Dir.chdir "./scripts"
     system "bash ./start.sh"
   end

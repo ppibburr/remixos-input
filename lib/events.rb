@@ -28,6 +28,10 @@ class Event
       JoystickEvent.new(obj)
     when 'device'
       DeviceEvent.new(obj)
+    when 'update'
+      update
+    when 'restart'
+      restart
     else
       super
     end
