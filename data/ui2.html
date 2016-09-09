@@ -218,15 +218,40 @@ connect(function() {
   
   dispatch_event(device('mouse', 'center'));
   
-  dispatch_event(joystick('config', 1, { 
-    tap: ('mouse', 'BTN_1', {}),
+  dispatch_event(joystick('config', 0, { 
+    tap: click('mouse', 'KEY_PLAYPAUSE', {}),
     digital: {
       up: {
-        low: key('down', 'volumeup'),
-        high: key('up', 'volumeup')
-      }
+        low: key('up', 'volumeup'),
+        high: key('down', 'volumeup')
+      },
+      
+      down: {
+        low: key('up', 'volumedown'),
+        high: key('down', 'volumedown')
+      }      
     }
-  }));  
+  })); 
+  
+  dispatch_event(joystick('config', 1, { 
+    motion: {},
+    tap: click('mouse', 'BTN_1', {}),
+    digital: {
+      up: {
+        high: device('mouse', 'scroll_up'),
+        repeat: {
+          rate: 0.1
+        }        
+      },
+      
+      down: {
+        high: device('mouse', 'scroll_down'),
+        repeat: {
+          rate: 0.1
+        }
+      }      
+    }
+  }));    
   
   dispatch_event(joystick('config', 3, {
     motion: {

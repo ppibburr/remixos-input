@@ -8,6 +8,7 @@ class Axis
   def initialize
     self.class.instances << self
     @digital = {}
+    @threads = {}
   end
   
   def dispatch evt
@@ -28,8 +29,10 @@ class Axis
   def motion evt
     return unless @active
     
-    if evt.distance > 0 #@thresh_hold
+    if evt.distance > 3 #@thresh_hold
       @move = true
+
+      return unless @device and @device.respond_to?(:motion)
 
       @evt = evt
     
@@ -70,6 +73,10 @@ class Axis
     @active = false
     
     if @act_dig
+      if t=@threads[@act_dig.to_sym]
+        t.kill
+        @threads[@act_dig.to_sym] = nil
+      end
       on_digital @act_dig, :low
     end 
     
@@ -96,12 +103,10 @@ class Axis
   end
   
   def on_digital arg, state=:high, &b
-    if @act_dig
+    if o=@act_dig
       @act_dig = nil
-      on_digital @act_dig, :low
+      on_digital o, :low unless state == :low
     end
-    
-    p @digital
     
     @act_dig = arg if state == :high
   
@@ -111,6 +116,7 @@ class Axis
      end
      
      if cb=(@digital[arg] ||= {})[state]
+       p [arg, state]
        cb.call
      end
   end
@@ -140,6 +146,21 @@ class Axis
           next unless evt
            
           on_digital name.to_sym, state.to_sym do
+            if t=@threads[name.to_sym]
+              t.kill
+              @threads[name.to_sym] = nil
+            end
+            
+            if rpt=dir['repeat'] and state.to_sym == :high
+              @threads[name.to_sym] = Thread.new do
+                loop do
+                  dispatch_event(evt)
+                  sleep rpt['rate'] ||= 0.3
+                end
+              end
+              next
+            end
+            
             dispatch_event(evt)
           end
         end
@@ -155,8 +176,6 @@ class Axis
     if o['motion']
       begin
         @device = Device.get(o['motion']['bind'])
-        
-        raise unless @device.respond_to?(:motion)
         
         on_motion() do |evt|
           evt.perform self

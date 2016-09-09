@@ -71,4 +71,12 @@ class Mouse < RelativeChange
   def center
     abs_motion axi[0].length / 2.0, axi[1].length / 2.0
   end
+  
+  def scroll_up step = 1
+    uinput REL_WHEEL, step, 1
+  end
+  
+  def scroll_down step = 1
+    uinput REL_WHEEL, -1*step, 1
+  end  
 end

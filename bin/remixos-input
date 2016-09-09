@@ -114,9 +114,11 @@ begin
   end
  
   get "/:file" do
-    open("../data/#{params[:file]}").read.gsub("://192.168.1.12:4567", uri.gsub(/^http/,''))
-  end  
-
+    begin
+      open("../data/#{params[:file]}").read.gsub("://192.168.1.12:4567", uri.gsub(/^http/,''))
+    rescue
+    end  
+  end
 rescue => e
   update
 end

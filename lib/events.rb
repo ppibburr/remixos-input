@@ -101,7 +101,7 @@ class KeyEvent < Event
         if ev[1] == 1
           play_click
         end
-        
+        puts ["uinput"].push(*ev)        
         uinput *ev
         
       end
@@ -189,7 +189,8 @@ class DeviceEvent < Event
       Device.add name, Object::const_get(config['klass']).new(config)
       puts "Device: #{config}"
     else
-      Device.get(name).send(*([action].push(*data['args'])))
+            Device.get(name).send(*([action].push(*data['args'])))
+
     end
   rescue => e
     puts "Device: Error: #{e}\n#{e.backtrace.join("\n")}"
