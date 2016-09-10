@@ -19,8 +19,13 @@ function UI() {
     return ele;
   }
 
-  this.button = function(parent) {
-    return this.cell(parent).addClass('button');
+  this.button = function(parent, data) {
+    ele = this.row(parent).addClass('button');
+    if (data && data.image) {
+      image = $('<img src="'+data.image+'">')
+      ele.append(image)
+    }
+    return ele;
   }
 
   this.space = function(parent) {
@@ -57,20 +62,24 @@ col = ui.column($(document.body));
 row = ui.row(col);
 ui.flexNone(row);
 
+apps = ['hbo', 'amazon', 'tv', 'music', 'browser', 'settings']
+
 for (i=0; i<6; i++) {
-  ui.button(row);
+  ui.button(row, {image: "icons/app/"+apps[i]+'.png'}).on('touchstart', function(e) {
+    q = $('.button').index($(e.delegateTarget));
+    dispatch_event(app('launch', q, {}));  
+  });
 }
 
-ui.flexMore($('.button')[2]);
+row = ui.row(col).css({position:'relative', top: '60px'});
 
-$($('.button')[2]).on('touchstart', function() {
-  dispatch_event(device('mouse', 'center'));
-});
-
-row = ui.row(col);
-ui.space(row);
 ui.flexNone(ui.button(row));
 ui.space(row);
+ui.flexNone(ui.button(row, {image: 'icons/White/Home.png'}));
+ui.button(row, {image: 'icons/White/Search.png'});
+ui.flexNone(ui.button(row, {image: 'icons/White/List.png'}));
+ui.space(row);
+ui.flexNone(ui.button(row));
 
 row = ui.row(col);
 ui.joystick(row).css({top:'100px', left:'20px'});
@@ -79,10 +88,18 @@ ui.joystick(row).css({top:'100px', left:'-20px'});
 
 ui.flexMore(row=ui.row(col));
 ui.space(row);
+ui.flexNone(ui.button(row));
+ui.flexNone(ui.space(row));
 ui.button(row);
+ui.flexNone(ui.space(row));
+ui.flexNone(ui.button(row));
 ui.space(row);
 
 row = ui.row(col);
 ui.joystick(row).css({top:'0px', left:'100px'});
+ui.flexMore(ui.space(row));
+ui.button(row);
+ui.space(row);
+ui.button(row);
 ui.flexMore(ui.space(row));
 ui.joystick(row).css({top:'0px', left:'-100px'});
