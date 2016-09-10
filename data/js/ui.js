@@ -82,9 +82,9 @@ ui.space(row);
 ui.flexNone(ui.button(row));
 
 row = ui.row(col);
-ui.joystick(row).css({top:'100px', left:'20px'});
+ui.joystick(row).css({top:'98px', left:'20px'});
 ui.flexMore(ui.space(row));
-ui.joystick(row).css({top:'100px', left:'-20px'});
+ui.joystick(row).css({top:'98px', left:'-20px'});
 
 ui.flexMore(row=ui.row(col));
 ui.space(row);
