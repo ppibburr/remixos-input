@@ -84,7 +84,7 @@ class ADB
   
   def launch q
     if app = App.find(q)
-      puts "monkey -p #{app.package} 1"
+      puts "monkey -p #{app[1].package} 1"
       return
     end
     
@@ -108,16 +108,16 @@ class ADB
   end
   
   def search
-    if App.find(active)
-      app.search
+    if app=App.find(active)
+      app[1].search
     else
       keyevent 84
     end
   end
   
   def menu
-    if App.find(active)
-      app.menu
+    if app=App.find(active)
+      app[1].menu
     else
       keyevent(82)
     end

@@ -67,7 +67,8 @@ apps = ['hbo', 'amazon', 'tv', 'music', 'browser', 'settings']
 for (i=0; i<6; i++) {
   ui.button(row, {image: "icons/app/"+apps[i]+'.png'}).on('touchstart', function(e) {
     q = $('.button').index($(e.delegateTarget));
-    dispatch_event(app('launch', q, {}));  
+    console.log(q);
+    dispatch_event(app('launch', apps[q], {}));  
   });
 }
 
@@ -75,9 +76,15 @@ row = ui.row(col).css({position:'relative', top: '60px'});
 
 ui.flexNone(ui.button(row));
 ui.space(row);
-ui.flexNone(ui.button(row, {image: 'icons/White/Home.png'}));
-ui.button(row, {image: 'icons/White/Search.png'});
-ui.flexNone(ui.button(row, {image: 'icons/White/List.png'}));
+ui.flexNone(ui.button(row, {image: 'icons/White/Home.png'})).on('touchstart', function() {
+  dispatch_event(key('adb', 'home'));  
+});
+ui.button(row, {image: 'icons/White/Search.png'}).on('touchstart', function() {
+  dispatch_event(key('adb', 'search'));  
+});
+ui.flexNone(ui.button(row, {image: 'icons/White/List.png'})).on('touchstart', function() {
+  dispatch_event(key('adb', 'menu'));  
+});
 ui.space(row);
 ui.flexNone(ui.button(row));
 

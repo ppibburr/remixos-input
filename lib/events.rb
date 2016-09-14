@@ -114,7 +114,7 @@ class KeyEvent < Event
   
   def perform
     super()
-    
+        
     if action == 'adb'
       code = ADB::CHARMAP[name]
 
@@ -249,7 +249,7 @@ class Point2PointEvent < PointEvent
 end
 
 module TouchEvent
-  def device
+  def source
     d = super
     if d ==  device
       nil
@@ -332,8 +332,8 @@ class TapEvent < PointEvent
   
   def perform
     super()
-    
-    device.tap source.x, source.y 
+    p self
+    Device.get('mouse').click source.x, source.y 
   rescue
   end
 end
@@ -377,13 +377,15 @@ class AppEvent < Event
 
   def perform
     super
-    
+    p action
     case action
     when 'config'
       App.add(id, App.new(package, search, menu))
       puts "App: #{data}"
     when 'launch'
       adb.launch((app=App.find(id)) ? app.package : package)
+    else
+
     end
   end
 end

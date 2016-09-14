@@ -166,53 +166,55 @@ connect(function() {
   dispatch_event(app('config', 'hbo', {
     package: 'com.HBO',
     search: [
-      {},
-      {}
+      click('mouse', 'BTN_1', {
+        x: 1626,
+        y: 32  
+      })
     ]
   }));
 
-  dispatch_event(app('config', 'hbo', {
-    package: 'com.HBO',
+  dispatch_event(app('config', 'music', {
+    package: 'com.spotify.music',
     search: [
       {},
       {}
     ]
   }));
 
-  dispatch_event(app('config', 'hbo', {
-    package: 'com.HBO',
+  dispatch_event(app('config', 'amazon', {
+    package: 'com.amazon',
     search: [
       {},
       {}
     ]
   }));
 
-  dispatch_event(app('config', 'hbo', {
-    package: 'com.HBO',
+  dispatch_event(app('config', 'browser', {
+    package: 'com.android.chrome',
     search: [
       {},
       {}
     ]
   }));
 
-  dispatch_event(app('config', 'hbo', {
-    package: 'com.HBO',
+  dispatch_event(app('config', 'settings', {
+    package: 'com.android.settings',
     search: [
       {},
       {}
     ]
   }));
 
-  dispatch_event(app('config', 'hbo', {
-    package: 'com.HBO',
+  dispatch_event(app('config', 'tv', {
+    package: 'com.sling',
     search: [
       {},
       {}
     ]
   }));
 
-  dispatch_event(app('config', 'hbo', {
-    package: 'com.HBO',
+  dispatch_event(app('config', 'videos', {
+    package: 'com.android.youtube',
     search: [
       {},
       {}
@@ -227,6 +229,10 @@ connect(function() {
       y: ['REL_Y', 1080]
     }  
   }));
+  
+  dispatch_event(device('touch', 'config', {
+    klass: 'TouchScreen'
+  }));  
   
   dispatch_event(device('mouse', 'center'));
   
